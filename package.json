@@ -1,0 +1,44 @@
+{
+  "name": "neurink",
+  "version": "1.0.0",
+  "description": "Neural Network Diagram Generator - Web-based platform for creating publication-quality neural network diagrams",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "start:frontend": "cd frontend && npm run preview",
+    "start:backend": "cd backend && npm start",
+    "install:all": "npm install --prefix frontend --legacy-peer-deps && npm install --prefix backend",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amanasci/NeurInk.git"
+  },
+  "keywords": [
+    "neural-network",
+    "diagram",
+    "svg",
+    "visualization",
+    "machine-learning",
+    "deep-learning",
+    "academic",
+    "publication",
+    "markup-language"
+  ],
+  "author": "NeurInk Contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/amanasci/NeurInk/issues"
+  },
+  "homepage": "https://github.com/amanasci/NeurInk#readme",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
