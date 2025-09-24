@@ -78,10 +78,11 @@ class SVGRenderer:
         
     def _svg_defs(self, theme: Theme) -> str:
         """Generate SVG definitions for reusable elements."""
-        return '''  <defs>
+        colors = theme.get_colors()
+        return f'''  <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="7" 
             refX="10" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#666666" />
+      <polygon points="0 0, 10 3.5, 0 7" fill="{colors['connection']}" />
     </marker>
   </defs>'''
         
@@ -90,7 +91,8 @@ class SVGRenderer:
         positions = []
         
         if self.layout == "horizontal":
-            x_start = styles["padding"]
+            # Ensure first layer starts at padding + half layer width to avoid negative coordinates
+            x_start = styles["padding"] + styles["layer_width"] // 2
             y_center = styles["padding"] + styles["layer_height"] // 2
             
             for i in range(len(layers)):
@@ -100,7 +102,8 @@ class SVGRenderer:
                 
         elif self.layout == "vertical":
             x_center = styles["padding"] + styles["layer_width"] // 2
-            y_start = styles["padding"] 
+            # Ensure first layer starts at padding + half layer height to avoid negative coordinates
+            y_start = styles["padding"] + styles["layer_height"] // 2
             
             for i in range(len(layers)):
                 x = x_center
@@ -132,15 +135,17 @@ class SVGRenderer:
             x2, y2 = positions[i + 1]
             
             if self.layout == "horizontal":
-                start_x = x1 + styles["layer_width"]
+                # Connect from right edge of first layer to left edge of second layer
+                start_x = x1 + styles["layer_width"] // 2
                 start_y = y1
-                end_x = x2
+                end_x = x2 - styles["layer_width"] // 2
                 end_y = y2
             else:  # vertical
+                # Connect from bottom edge of first layer to top edge of second layer
                 start_x = x1
-                start_y = y1 + styles["layer_height"]
+                start_y = y1 + styles["layer_height"] // 2
                 end_x = x2
-                end_y = y2
+                end_y = y2 - styles["layer_height"] // 2
             
             connections.append(f'''  <line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}"
         stroke="{colors['connection']}" stroke-width="{styles['connection_width']}"
