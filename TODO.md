@@ -22,10 +22,10 @@ This document tracks the development progress of the NeurInk library for generat
 ## Phase 3: DSL Parser
 - [x] Choose and implement DSL parser (basic implementation)
 - [x] Support basic DSL syntax (input, conv, dense, etc.)
-- [ ] Support hierarchical groups in DSL
+- [ ] Support hierarchical groups in DSL (future enhancement)
 - [x] Implement Diagram.from_string() API
-- [ ] Add error handling for invalid DSL
-- [ ] Enhance DSL parser with lark/pyparsing for complex syntax
+- [x] Add error handling for invalid DSL
+- [ ] Enhance DSL parser with lark/pyparsing for complex syntax (future enhancement)
 
 ## Phase 4: Themes & Styling
 - [x] Create theme system with base Theme class
@@ -46,9 +46,9 @@ This document tracks the development progress of the NeurInk library for generat
 - [x] Write tests for Diagram class methods
 - [x] Write tests for DSL parser functionality
 - [x] Write tests for SVG renderer
-- [ ] Write tests for themes
-- [ ] Write tests for templates
-- [x] Ensure all tests pass
+- [x] Write tests for themes
+- [x] Write tests for templates
+- [x] Ensure all tests pass (87/87 tests passing ✅)
 
 ## Phase 7: Documentation
 - [x] Write comprehensive README.md

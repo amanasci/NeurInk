@@ -12,7 +12,7 @@ from .diagram import Diagram
 from .layer import Layer, InputLayer, ConvLayer, DenseLayer, FlattenLayer, DropoutLayer, OutputLayer
 from .renderer import SVGRenderer
 from .themes import Theme, IEEETheme, APJTheme, MinimalTheme, DarkTheme
-from .parser import DSLParser
+from .parser import DSLParser, DSLParseError
 from .templates import ResNetTemplate, UNetTemplate, TransformerTemplate, MLPTemplate
 
 __all__ = [
@@ -31,6 +31,7 @@ __all__ = [
     "MinimalTheme",
     "DarkTheme",
     "DSLParser",
+    "DSLParseError",
     "ResNetTemplate",
     "UNetTemplate", 
     "TransformerTemplate",
