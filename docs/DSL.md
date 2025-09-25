@@ -121,6 +121,84 @@ output units=1 activation=sigmoid    # Binary classification
 output units=100 activation=linear   # Regression
 ```
 
+### Attention Layer
+
+Defines a multi-head attention layer for Transformers.
+
+```
+attention [heads=H] [key_dim=K]
+```
+
+**Parameters:**
+- `heads` (optional): Number of attention heads, default=8
+- `key_dim` (optional): Dimension of keys/queries, default=64
+
+**Examples:**
+```
+attention                    # 8 heads, 64 key_dim
+attention heads=12           # 12 heads, 64 key_dim
+attention heads=16 key_dim=128   # 16 heads, 128 key_dim
+```
+
+### Layer Normalization
+
+Applies layer normalization.
+
+```
+layernorm
+```
+
+No parameters required.
+
+### Embedding Layer
+
+Defines an embedding layer for sequence models.
+
+```
+embedding vocab_size=V embed_dim=E
+```
+
+**Parameters:**
+- `vocab_size` (required): Size of the vocabulary
+- `embed_dim` (required): Embedding dimension
+
+**Examples:**
+```
+embedding vocab_size=10000 embed_dim=512    # Standard transformer embedding
+embedding vocab_size=50000 embed_dim=768    # Large vocabulary embedding
+```
+
+### Pooling Layer
+
+Defines a pooling layer for downsampling.
+
+```
+pooling [type=TYPE] [size=S] [stride=ST]
+```
+
+**Parameters:**
+- `type` (optional): Pooling type ('max', 'avg', 'global_avg'), default="max"
+- `size` (optional): Pooling window size, default=2
+- `stride` (optional): Pooling stride, default=2
+
+**Examples:**
+```
+pooling                     # MaxPool 2x2, stride=2
+pooling type=avg            # AvgPool 2x2, stride=2
+pooling type=global_avg     # Global average pooling
+pooling size=3 stride=1     # MaxPool 3x3, stride=1
+```
+
+### Batch Normalization
+
+Applies batch normalization.
+
+```
+batchnorm
+```
+
+No parameters required.
+
 ## Complete Examples
 
 ### Image Classification CNN
@@ -159,6 +237,85 @@ dense units=64 activation=relu
 dense units=32 activation=relu
 dense units=16 activation=relu
 output units=1 activation=sigmoid
+```
+
+### ResNet-style Architecture
+
+Modern CNN with batch normalization and skip connections (conceptual).
+
+```
+input size=224x224x3
+conv filters=64 kernel=7 stride=2
+batchnorm
+pooling type=max size=3 stride=2
+conv filters=64 kernel=3
+batchnorm
+conv filters=64 kernel=3
+batchnorm
+conv filters=128 kernel=3 stride=2
+batchnorm
+conv filters=128 kernel=3
+batchnorm
+conv filters=256 kernel=3 stride=2
+batchnorm
+conv filters=256 kernel=3
+batchnorm
+conv filters=512 kernel=3 stride=2
+batchnorm
+conv filters=512 kernel=3
+batchnorm
+pooling type=global_avg
+dense units=512
+dropout rate=0.5
+output units=1000
+```
+
+### Transformer Architecture
+
+Simplified transformer for sequence classification.
+
+```
+input size=512
+embedding vocab_size=10000 embed_dim=512
+layernorm
+attention heads=8 key_dim=64
+layernorm
+dense units=2048 activation=relu
+dense units=512
+attention heads=8 key_dim=64
+layernorm
+dense units=2048 activation=relu
+dense units=512
+pooling type=global_avg
+dense units=256
+dropout rate=0.1
+output units=5
+```
+
+### Image Classification with Modern Techniques
+
+CNN using batch normalization and different pooling strategies.
+
+```
+input size=224x224x3
+conv filters=32 kernel=3
+batchnorm
+conv filters=32 kernel=3
+batchnorm
+pooling type=max size=2
+conv filters=64 kernel=3
+batchnorm
+conv filters=64 kernel=3
+batchnorm
+pooling type=avg size=2
+conv filters=128 kernel=3
+batchnorm
+conv filters=128 kernel=3
+batchnorm
+pooling type=global_avg
+dense units=256
+dropout rate=0.5
+output units=10
 ```
 
 ## Using DSL in Python

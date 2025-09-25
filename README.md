@@ -89,40 +89,93 @@ Main class for building neural network diagrams.
 
 ### Themes
 
-Available themes: `"ieee"`, `"apj"`, `"minimal"`, `"dark"`
+Available themes: `"ieee"`, `"apj"`, `"minimal"`, `"dark"`, `"nnsvg"`
 
-Each theme provides different color schemes and styling suitable for various publication formats.
+Each theme provides different color schemes and styling suitable for various publication formats. The new **`"nnsvg"`** theme provides a beautiful NN-SVG inspired aesthetic with 3D layered blocks, gradients, and shadows.
+
+### Modern Layer Types
+
+NeurInk now supports advanced layer types for complex architectures:
+
+```python
+# Transformer components
+diagram = (Diagram()
+    .input(512)
+    .embedding(vocab_size=10000, embed_dim=512)  # Word embeddings
+    .layer_norm()                                # Layer normalization
+    .attention(num_heads=8, key_dim=64)         # Multi-head attention
+    .dense(2048, "gelu")                        # Feed-forward network
+    .pooling("global_avg")                      # Global average pooling
+    .output(num_classes))
+
+# Modern CNN components  
+diagram = (Diagram()
+    .input((224, 224, 3))
+    .conv(64, 3)
+    .batch_norm()                               # Batch normalization
+    .pooling("max", pool_size=2, stride=2)     # Max pooling
+    .conv(128, 3)
+    .batch_norm()
+    .pooling("avg", pool_size=2, stride=2)     # Average pooling
+    .output(num_classes))
+```
 
 ### Architecture Templates
 
-Pre-built templates for common architectures:
+Pre-built templates for common architectures with modern components:
 
 ```python
 from neurink.templates import ResNetTemplate, UNetTemplate, TransformerTemplate, MLPTemplate
 
-# Create ResNet-style architecture
+# Create ResNet-style architecture with BatchNorm and modern layers
 resnet = ResNetTemplate.create(input_shape=(224, 224, 3), num_classes=1000)
-resnet.render("resnet.svg")
+resnet.render("resnet.svg", theme="nnsvg")  # Beautiful 3D theme!
+
+# Create modern Transformer with attention layers
+transformer = TransformerTemplate.create(vocab_size=10000, max_length=512, num_classes=10)
+transformer.render("transformer.svg", theme="nnsvg")
 
 # Create MLP
 mlp = MLPTemplate.create(input_size=784, hidden_sizes=[512, 256], num_classes=10)
-mlp.render("mlp.svg")
+mlp.render("mlp.svg", theme="nnsvg")
 ```
 
-## DSL Syntax
+## Enhanced DSL Syntax
 
-The NeurInk DSL provides a simple way to define neural networks:
+The NeurInk DSL now supports modern layer types for complex architectures:
 
 ```
+# Traditional layers
 input size=64x64          # Input layer with 64x64 shape
 conv filters=32 kernel=3  # Convolutional layer
 dense units=128           # Dense layer
 flatten                   # Flatten layer (no parameters)
 dropout rate=0.5          # Dropout layer
-output units=10           # Output layer
+
+# Modern layers for complex architectures
+attention heads=8 key_dim=64     # Multi-head attention
+embedding vocab_size=10000 embed_dim=512  # Word embeddings
+layernorm                        # Layer normalization
+batchnorm                        # Batch normalization
+pooling type=max size=2          # Pooling layers
+output units=10                  # Output layer
 ```
 
-See [DSL.md](docs/DSL.md) for complete syntax reference.
+### Complete Transformer Example (DSL)
+```
+input size=512
+embedding vocab_size=10000 embed_dim=512
+layernorm
+attention heads=8 key_dim=64
+layernorm
+dense units=2048 activation=gelu
+dense units=512
+pooling type=global_avg
+dropout rate=0.1
+output units=5
+```
+
+See [DSL.md](docs/DSL.md) for complete syntax reference with all layer types.
 
 ## Examples
 
@@ -142,7 +195,43 @@ cnn = (Diagram()
     .dropout(0.5)
     .output(1000))
 
-cnn.render("cnn_classifier.svg", theme="ieee")
+cnn.render("cnn_classifier.svg", theme="nnsvg")  # Use the beautiful new theme!
+```
+
+### Modern Transformer Architecture
+
+```python
+transformer = (Diagram()
+    .input(512)
+    .embedding(vocab_size=10000, embed_dim=512)
+    .layer_norm()
+    .attention(num_heads=8, key_dim=64)
+    .layer_norm()
+    .dense(2048, activation="gelu")
+    .dense(512)
+    .pooling("global_avg")
+    .dropout(0.1)
+    .output(num_classes=10))
+
+transformer.render("transformer.svg", theme="nnsvg")
+```
+
+### ResNet with Batch Normalization
+
+```python
+resnet = (Diagram()
+    .input((224, 224, 3))
+    .conv(64, 7, stride=2)
+    .batch_norm()
+    .pooling("max", pool_size=3, stride=2)
+    .conv(64, 3)
+    .batch_norm()
+    .conv(128, 3, stride=2)
+    .batch_norm()
+    .pooling("global_avg")
+    .dense(1000))
+
+resnet.render("resnet.svg", theme="nnsvg")
 ```
 
 ### Simple MLP
@@ -156,7 +245,7 @@ mlp = (Diagram()
     .dropout(0.5)
     .output(10))
 
-mlp.render("mlp.svg", theme="minimal")
+mlp.render("mlp.svg", theme="nnsvg")
 ```
 
 ## Contributing
