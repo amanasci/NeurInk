@@ -10,7 +10,7 @@ from typing import Dict, Any
 
 
 class Theme(ABC):
-    """Base class for diagram themes."""
+    """Base class for diagram themes with universal advanced features."""
     
     @abstractmethod
     def get_colors(self) -> Dict[str, str]:
@@ -26,6 +26,43 @@ class Theme(ABC):
     def get_typography(self) -> Dict[str, str]:
         """Get typography settings for the theme."""
         pass
+    
+    def supports_advanced_features(self) -> bool:
+        """Check if theme supports advanced 3D effects and gradients."""
+        colors = self.get_colors()
+        return 'shadow' in colors or 'layer_depth' in self.get_styles()
+    
+    def get_connection_styles(self) -> Dict[str, Dict[str, Any]]:
+        """Get connection-specific styling options."""
+        colors = self.get_colors()
+        base_width = self.get_styles().get('connection_width', 2)
+        
+        return {
+            'standard': {
+                'stroke': colors.get('connection', '#666666'),
+                'width': base_width,
+                'opacity': '1.0',
+                'dasharray': 'none'
+            },
+            'skip': {
+                'stroke': colors.get('skip_connection', colors.get('connection', '#666666')),
+                'width': max(2, base_width + 1),
+                'opacity': '0.8',
+                'dasharray': '8,4'
+            },
+            'attention': {
+                'stroke': colors.get('attention_connection', colors.get('connection', '#666666')),
+                'width': max(3, base_width + 2),
+                'opacity': '0.7',
+                'dasharray': '12,6'
+            },
+            'residual': {
+                'stroke': colors.get('residual_connection', colors.get('connection', '#666666')),
+                'width': max(2, base_width + 1),
+                'opacity': '0.9',
+                'dasharray': '6,3'
+            }
+        }
 
 
 class IEEETheme(Theme):
@@ -41,7 +78,17 @@ class IEEETheme(Theme):
             "conv_fill": "#fff3e0",
             "dense_fill": "#f3e5f5",
             "output_fill": "#e8f5e8",
+            "flatten_fill": "#fce4ec",
+            "dropout_fill": "#f1f8e9",
+            "attention_fill": "#e8eaf6",
+            "layernorm_fill": "#e3f2fd",
+            "embedding_fill": "#f3e5f5",
+            "pooling_fill": "#e0f2f1",
+            "batchnorm_fill": "#fff8e1",
             "connection": "#666666",
+            "skip_connection": "#9c27b0",
+            "attention_connection": "#3f51b5",
+            "residual_connection": "#ff5722",
             "text": "#000000"
         }
         
@@ -81,7 +128,17 @@ class APJTheme(Theme):
             "conv_fill": "#fffacd",
             "dense_fill": "#f5f5dc",
             "output_fill": "#f0fff0",
+            "flatten_fill": "#ffe4e1",
+            "dropout_fill": "#f0fff0",
+            "attention_fill": "#e6e6fa",
+            "layernorm_fill": "#f0f8ff",
+            "embedding_fill": "#fdf5e6",
+            "pooling_fill": "#f0ffff",
+            "batchnorm_fill": "#fffaf0",
             "connection": "#000000",
+            "skip_connection": "#8b0000",
+            "attention_connection": "#191970",
+            "residual_connection": "#b22222",
             "text": "#000000"
         }
         
@@ -121,7 +178,17 @@ class MinimalTheme(Theme):
             "conv_fill": "#ffffff",
             "dense_fill": "#ffffff",
             "output_fill": "#ffffff",
+            "flatten_fill": "#ffffff",
+            "dropout_fill": "#ffffff",
+            "attention_fill": "#ffffff",
+            "layernorm_fill": "#ffffff",
+            "embedding_fill": "#ffffff",
+            "pooling_fill": "#ffffff",
+            "batchnorm_fill": "#ffffff",
             "connection": "#cccccc",
+            "skip_connection": "#999999",
+            "attention_connection": "#888888",
+            "residual_connection": "#777777",
             "text": "#333333"
         }
         
@@ -161,8 +228,19 @@ class DarkTheme(Theme):
             "conv_fill": "#7c2d12", 
             "dense_fill": "#581c87",
             "output_fill": "#166534",
+            "flatten_fill": "#be123c",
+            "dropout_fill": "#047857",
+            "attention_fill": "#5b21b6",
+            "layernorm_fill": "#1e40af",
+            "embedding_fill": "#7c3aed",
+            "pooling_fill": "#059669",
+            "batchnorm_fill": "#a16207",
             "connection": "#ffffff",
-            "text": "#ffffff"
+            "skip_connection": "#e879f9",
+            "attention_connection": "#60a5fa",
+            "residual_connection": "#f87171",
+            "text": "#ffffff",
+            "shadow": "#00000040"
         }
         
     def get_styles(self) -> Dict[str, Any]:
@@ -212,6 +290,9 @@ class NNSVGTheme(Theme):
             "branch_fill": "#ff5722",
             "merge_fill": "#4caf50",
             "connection": "#6c757d",
+            "skip_connection": "#9c27b0",
+            "attention_connection": "#7e57c2",
+            "residual_connection": "#ff5722",
             "text": "#212529",
             "shadow": "#00000020"
         }

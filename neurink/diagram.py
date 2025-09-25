@@ -364,15 +364,21 @@ class Diagram:
         """
         if isinstance(theme, str):
             theme_obj = self._get_theme_by_name(theme)
-            # Use professional renderer for nnsvg theme
-            if theme == "nnsvg":
-                renderer = ProfessionalSVGRenderer()
-                svg_content = renderer.render_diagram(self, theme_obj)
-            else:
-                renderer = self._renderer
-                svg_content = renderer.render(self.layers, theme_obj)
         else:
             theme_obj = theme
+            
+        # Use advanced renderer for enhanced themes or complex architectures
+        use_advanced_renderer = (
+            (isinstance(theme, str) and theme in ["nnsvg", "dark"]) or
+            (hasattr(theme_obj, 'supports_advanced_features') and theme_obj.supports_advanced_features()) or
+            self._has_complex_architecture()
+        )
+        
+        if use_advanced_renderer:
+            from .advanced_renderer import AdvancedSVGRenderer
+            renderer = AdvancedSVGRenderer()
+            svg_content = renderer.render_diagram(self, theme_obj)
+        else:
             renderer = self._renderer
             svg_content = renderer.render(self.layers, theme_obj)
         
@@ -380,6 +386,17 @@ class Diagram:
             f.write(svg_content)
             
         return filename
+    
+    def _has_complex_architecture(self) -> bool:
+        """Check if the diagram has complex architecture features."""
+        # Check for skip connections, custom connections, or groups
+        has_skip_connections = any(
+            layer.layer_type in ["branch", "merge"] for layer in self.layers
+        )
+        has_custom_connections = len(self.connections) > 0
+        has_groups = len(self.groups) > 0
+        
+        return has_skip_connections or has_custom_connections or has_groups
         
     def _get_theme_by_name(self, theme_name: str) -> Theme:
         """Get theme object by name."""

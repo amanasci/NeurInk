@@ -137,7 +137,8 @@ class TestThemes:
                 # Should be hex color starting with #
                 assert isinstance(color_value, str)
                 assert color_value.startswith("#")
-                assert len(color_value) == 7  # #RRGGBB format
+                # Support both #RRGGBB and #RRGGBBAA formats
+                assert len(color_value) in [7, 9]  # #RRGGBB or #RRGGBBAA format
                 
                 # Should be valid hex
                 hex_part = color_value[1:]
