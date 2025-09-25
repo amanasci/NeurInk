@@ -206,17 +206,33 @@ class GraphvizRenderer:
         """Initialize the Graphviz renderer."""
         pass
         
-    def render(self, graph: nx.DiGraph, theme: Theme) -> str:
+    def render(self, input_data, theme: Theme) -> str:
         """
-        Render graph to SVG string using Graphviz.
+        Render graph or layers to SVG string using Graphviz.
         
         Args:
-            graph: NetworkX directed graph containing layers as nodes
+            input_data: NetworkX directed graph or list of layers (backward compatibility)
             theme: Theme object for styling
             
         Returns:
             SVG content as string
         """
+        # Handle backward compatibility with list of layers
+        if isinstance(input_data, list):
+            # For backward compatibility, create a temporary graph from layers
+            import networkx as nx
+            graph = nx.DiGraph()
+            for i, layer in enumerate(input_data):
+                layer_name = f"{layer.layer_type}_{i+1}"
+                layer.name = layer_name
+                graph.add_node(layer_name, layer=layer)
+                if i > 0:
+                    prev_layer_name = f"{input_data[i-1].layer_type}_{i}"
+                    graph.add_edge(prev_layer_name, layer_name)
+        else:
+            # Input is already a graph
+            graph = input_data
+        
         if len(graph) == 0:
             return self._empty_svg(theme)
             
