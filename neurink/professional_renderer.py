@@ -9,6 +9,7 @@ professional styling, and advanced layout algorithms.
 from typing import List, Dict, Any, Tuple, Optional, Set
 from .layer import Layer
 from .themes import Theme
+from .layout import AdvancedLayoutEngine
 
 
 class ProfessionalSVGRenderer:
@@ -25,6 +26,7 @@ class ProfessionalSVGRenderer:
     def __init__(self):
         """Initialize the professional renderer."""
         self.layout = "horizontal"
+        self.layout_engine = AdvancedLayoutEngine()
         
     def render_diagram(self, diagram, theme: Theme) -> str:
         """
@@ -44,20 +46,16 @@ class ProfessionalSVGRenderer:
         styles = theme.get_styles()
         typography = theme.get_typography()
         
-        # Analyze architecture for skip connections and custom connections
-        architecture_graph = self._analyze_architecture(diagram.layers)
+        # Calculate advanced layout using Sugiyama algorithm
+        positions = self.layout_engine.calculate_positions(diagram, styles)
         
-        # Add custom connections to the graph
-        for connection in diagram.connections:
-            architecture_graph['custom_connections'] = architecture_graph.get('custom_connections', [])
-            architecture_graph['custom_connections'].append(connection)
-        
-        # Calculate professional layout with proper skip connections
-        positions = self._calculate_professional_layout(diagram.layers, architecture_graph, styles)
+        # Filter out dummy nodes for rendering (they're invisible)
+        visible_positions = {name: pos for name, pos in positions.items() 
+                           if not name.startswith('dummy_')}
         
         # Calculate canvas size with proper margins for groups
         canvas_width, canvas_height = self._calculate_canvas_size_with_groups(
-            positions, diagram.groups, styles)
+            visible_positions, diagram.groups, styles)
         
         # Generate professional SVG with advanced styling
         svg_parts = []
@@ -66,18 +64,19 @@ class ProfessionalSVGRenderer:
         
         # Render layer groups first (as background)
         if diagram.groups:
-            svg_parts.append(self._render_layer_groups(diagram.groups, diagram.layers, positions, colors, styles))
+            svg_parts.append(self._render_layer_groups(diagram.groups, diagram.layers, visible_positions, colors, styles))
         
-        # Render professional connections with proper skip connection paths
+        # Render advanced connections using layout engine
         if len(diagram.layers) > 1 or diagram.connections:
-            svg_parts.append(self._render_professional_connections(
-                diagram.layers, architecture_graph, positions, colors, styles))
+            svg_parts.append(self._render_advanced_connections(
+                diagram, self.layout_engine, positions, colors, styles))
         
-        # Render layers with advanced 3D styling
-        for i, layer in enumerate(diagram.layers):
-            x, y = positions[i]
-            svg_parts.append(self._render_professional_layer(
-                layer, x, y, colors, styles, typography))
+        # Render layers with advanced 3D styling (skip dummy nodes)
+        for layer in diagram.layers:
+            if layer.name in visible_positions:
+                x, y = visible_positions[layer.name]
+                svg_parts.append(self._render_professional_layer(
+                    layer, x, y, colors, styles, typography))
             
         svg_parts.append("</svg>")
         
@@ -444,7 +443,7 @@ class ProfessionalSVGRenderer:
         
         return layer_svg
         
-    def _calculate_canvas_size(self, positions: List[Tuple[int, int]], styles: Dict[str, Any]) -> Tuple[int, int]:
+    def _calculate_canvas_size(self, positions: List[Tuple[float, float]], styles: Dict[str, Any]) -> Tuple[int, int]:
         """Calculate canvas size with proper margins for professional layout."""
         if not positions:
             return 400, 200
@@ -458,15 +457,17 @@ class ProfessionalSVGRenderer:
         margin_x = styles["padding"] * 2
         margin_y = styles["padding"] * 2
         
-        width = max_x - min_x + styles["layer_width"] + margin_x
-        height = max_y - min_y + styles["layer_height"] + margin_y
+        width = int(max_x - min_x + styles["layer_width"] + margin_x)
+        height = int(max_y - min_y + styles["layer_height"] + margin_y)
         
         return width, height
         
-    def _calculate_canvas_size_with_groups(self, positions: List[Tuple[int, int]], 
+    def _calculate_canvas_size_with_groups(self, positions: Dict[str, Tuple[float, float]], 
                                          groups: List, styles: Dict[str, Any]) -> Tuple[int, int]:
         """Calculate canvas size including space for group bounding boxes."""
-        base_width, base_height = self._calculate_canvas_size(positions, styles)
+        # Convert positions dict to list of coordinate tuples
+        position_list = list(positions.values())
+        base_width, base_height = self._calculate_canvas_size(position_list, styles)
         
         # Add extra space for group labels and padding
         if groups:
@@ -488,9 +489,9 @@ class ProfessionalSVGRenderer:
                 
             # Find positions of layers in this group
             group_positions = []
-            for i, layer in enumerate(layers):
-                if layer.name in group.layers:
-                    group_positions.append(positions[i])
+            for layer in layers:
+                if layer.name in group.layers and layer.name in positions:
+                    group_positions.append(positions[layer.name])
                     
             if not group_positions:
                 continue
@@ -583,6 +584,98 @@ class ProfessionalSVGRenderer:
         marker-end="url(#arrowhead)"/>''')
         
         return "\n".join(connection_svg_parts)
+        
+    def _render_advanced_connections(self, diagram, layout_engine: AdvancedLayoutEngine,
+                                   positions: Dict[str, Tuple[float, float]], 
+                                   colors: Dict[str, str], styles: Dict[str, Any]) -> str:
+        """Render connections using the advanced layout engine."""
+        connection_svg_parts = []
+        
+        if not layout_engine.graph:
+            return ""
+        
+        # Render all edges in the graph
+        for source_node in layout_engine.graph.nodes:
+            for target_node in layout_engine.graph.get_successors(source_node):
+                # Get edge path (may include dummy nodes)
+                path = layout_engine.get_edge_path(source_node, target_node)
+                
+                if len(path) < 2:
+                    continue
+                
+                # Determine connection style
+                style = "regular"
+                if hasattr(diagram, 'connections'):
+                    for conn in diagram.connections:
+                        if ((conn.source_name == source_node and conn.target_name == target_node) or
+                            self._is_connection_path(conn.source_name, conn.target_name, 
+                                                   source_node, target_node, layout_engine)):
+                            style = conn.style
+                            break
+                
+                # Check if this is a skip connection based on ranks
+                source_rank = layout_engine.ranks.get(source_node, 0)
+                target_rank = layout_engine.ranks.get(target_node, 0)
+                if target_rank - source_rank > 1:
+                    style = "skip"
+                
+                # Render the connection
+                if len(path) == 2:
+                    # Direct connection
+                    start_x, start_y = path[0]
+                    end_x, end_y = path[1]
+                    
+                    if style == "skip":
+                        # Curved skip connection
+                        mid_x = (start_x + end_x) / 2
+                        control_y = start_y - 30
+                        
+                        connection_svg_parts.append(f'''  <path d="M {start_x},{start_y} Q {mid_x},{control_y} {end_x},{end_y}" 
+        stroke="{colors.get('skip_connection', colors['connection'])}" 
+        stroke-width="{styles['connection_width'] + 1}" 
+        stroke-dasharray="6,4" 
+        stroke-linecap="round"
+        fill="none" 
+        opacity="0.8"
+        marker-end="url(#skip-arrowhead)"/>''')
+                    elif style == "attention":
+                        # Dotted attention connection  
+                        connection_svg_parts.append(f'''  <path d="M {start_x},{start_y} L {end_x},{end_y}" 
+        stroke="{colors.get('attention_connection', '#7e57c2')}" 
+        stroke-width="{styles['connection_width']}" 
+        stroke-dasharray="2,3" 
+        stroke-linecap="round"
+        marker-end="url(#arrowhead)"/>''')
+                    else:
+                        # Regular connection
+                        connection_svg_parts.append(f'''  <path d="M {start_x},{start_y} L {end_x},{end_y}" 
+        stroke="{colors['connection']}" 
+        stroke-width="{styles['connection_width']}" 
+        stroke-linecap="round"
+        marker-end="url(#arrowhead)"/>''')
+                else:
+                    # Multi-segment connection through dummy nodes
+                    path_str = f"M {path[0][0]},{path[0][1]}"
+                    for i in range(1, len(path)):
+                        path_str += f" L {path[i][0]},{path[i][1]}"
+                    
+                    connection_svg_parts.append(f'''  <path d="{path_str}" 
+        stroke="{colors['connection']}" 
+        stroke-width="{styles['connection_width']}" 
+        stroke-linecap="round"
+        fill="none"
+        marker-end="url(#arrowhead)"/>''')
+        
+        return "\n".join(connection_svg_parts)
+    
+    def _is_connection_path(self, orig_source: str, orig_target: str, 
+                          current_source: str, current_target: str, 
+                          layout_engine: AdvancedLayoutEngine) -> bool:
+        """Check if current edge is part of an original connection path."""
+        # This would check if the current edge is part of the path from
+        # orig_source to orig_target, potentially through dummy nodes
+        # For now, simple implementation
+        return (orig_source == current_source and orig_target == current_target)
         
     def _empty_svg(self, theme: Theme) -> str:
         """Generate professional empty SVG."""

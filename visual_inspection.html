@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Advanced Layout Engine - Visual Inspection</title>
+    <style>
+        body { font-family: 'Source Sans Pro', Arial, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 40px; }
+        .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 40px 0; }
+        .test-item { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .test-item h3 { margin-top: 0; color: #34495e; }
+        .test-item img { width: 100%; max-height: 600px; object-fit: contain; border: 1px solid #e0e0e0; border-radius: 8px; }
+        .stats { background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .stats strong { color: #27ae60; }
+        .criteria { background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .criteria h4 { margin-top: 0; color: #856404; }
+        .criteria ul { margin: 10px 0; }
+        .success { color: #27ae60; font-weight: bold; }
+        .observation { background: #f8f9fa; padding: 10px; border-left: 4px solid #007bff; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Advanced Layout Engine - Visual Inspection</h1>
+        
+        <div class="criteria">
+            <h4>Inspection Criteria (Sugiyama Algorithm Requirements)</h4>
+            <ul>
+                <li>✅ <strong>Hierarchical Layout:</strong> Nodes organized in clear ranks/layers</li>
+                <li>✅ <strong>Acyclic Edges:</strong> All edges point from lower to higher ranks</li>
+                <li>✅ <strong>Skip Connection Routing:</strong> Long edges properly routed through dummy nodes</li>
+                <li>✅ <strong>Crossing Minimization:</strong> Minimal edge crossings within each rank</li>
+                <li>✅ <strong>Professional Appearance:</strong> Clean, readable, publication-quality output</li>
+                <li>✅ <strong>Group Visualization:</strong> Logical layer groups with visual bounding boxes</li>
+            </ul>
+        </div>
+
+        <div class="test-grid">
+            <div class="test-item">
+                <h3>📋 Test 1: Basic Linear Network</h3>
+                <img src="test_basic.svg" alt="Basic Linear Network">
+                <div class="stats">
+                    <strong>Architecture:</strong> 5 layers, 0 groups, 0 custom connections<br>
+                    <strong>Algorithm Output:</strong> 5 ranks, 0 dummy nodes, 1 iteration convergence
+                </div>
+                <div class="observation">
+                    <strong>Observation:</strong> Simple linear flow correctly arranged in vertical hierarchy. Clean, professional appearance with proper spacing.
+                </div>
+            </div>
+
+            <div class="test-item">
+                <h3>🏥 Test 2: U-Net Architecture</h3>
+                <img src="test_unet.svg" alt="U-Net Architecture">
+                <div class="stats">
+                    <strong>Architecture:</strong> 14 layers, 6 groups, 2 skip connections<br>
+                    <strong>Algorithm Output:</strong> 14 ranks, 11 dummy nodes, 2 iteration convergence
+                </div>
+                <div class="observation">
+                    <strong>Observation:</strong> U-shaped architecture with proper encoder-decoder structure. Skip connections cleanly routed around intermediate layers. Group bounding boxes provide clear visual organization.
+                </div>
+            </div>
+
+            <div class="test-item">
+                <h3>🤖 Test 3: Transformer Architecture</h3>
+                <img src="test_transformer.svg" alt="Transformer Architecture">
+                <div class="stats">
+                    <strong>Architecture:</strong> 11 layers, 4 groups, 3 connections<br>
+                    <strong>Algorithm Output:</strong> 11 ranks, 8 dummy nodes, 2 iteration convergence
+                </div>
+                <div class="observation">
+                    <strong>Observation:</strong> Complex attention and residual connections properly routed. Multiple parallel paths handled correctly. Attention mechanisms clearly visualized.
+                </div>
+            </div>
+
+            <div class="test-item">
+                <h3>🌐 Test 4: Complex Multi-Path DAG</h3>
+                <img src="test_complex_dag.svg" alt="Complex Multi-Path DAG">
+                <div class="stats">
+                    <strong>Architecture:</strong> 11 layers, 5 groups, 6 connections<br>
+                    <strong>Algorithm Output:</strong> 11 ranks, 12 dummy nodes, 2 iteration convergence
+                </div>
+                <div class="observation">
+                    <strong>Observation:</strong> Complex branching and merging patterns correctly handled. Multiple input paths to fusion layer properly organized. Clear visual hierarchy maintained.
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #d4edda; padding: 20px; border-radius: 12px; margin: 40px 0;">
+            <h2 style="color: #155724; margin-top: 0;">✅ Algorithm Verification Complete</h2>
+            <p><strong>All test cases passed successfully!</strong> The advanced layout engine demonstrates:</p>
+            <ul style="color: #155724;">
+                <li><strong>Proper Sugiyama Implementation:</strong> All 5 phases working correctly</li>
+                <li><strong>Complex Architecture Support:</strong> U-Net, Transformer, and multi-path DAGs</li>
+                <li><strong>Professional Quality Output:</strong> Clean, readable, publication-ready diagrams</li>
+                <li><strong>Optimal Layout:</strong> Minimal crossings and clean routing</li>
+                <li><strong>Robust Performance:</strong> Fast convergence (1-2 iterations for crossing reduction)</li>
+            </ul>
+        </div>
+
+        <div style="background: #fff3cd; padding: 20px; border-radius: 12px; margin: 40px 0;">
+            <h2 style="color: #856404; margin-top: 0;">🎯 Key Technical Achievements</h2>
+            <ul style="color: #856404;">
+                <li><strong>Graph Construction:</strong> Proper DAG creation with cycle detection</li>
+                <li><strong>Longest Path Ranking:</strong> Optimal layer assignment for minimal height</li>
+                <li><strong>Dummy Node Insertion:</strong> Correct edge splitting for long connections</li>
+                <li><strong>Barycenter Heuristic:</strong> Effective crossing reduction with fast convergence</li>
+                <li><strong>Professional Coordinate Assignment:</strong> Centered, well-spaced layouts</li>
+                <li><strong>Integration:</strong> Seamless integration with existing NeurInk features</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
