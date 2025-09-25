@@ -1,0 +1,13 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting networkx
+  Downloading networkx-3.5-py3-none-any.whl.metadata
+     - 6.3 kB ? 0:00:00
+Collecting graphviz
+  Downloading graphviz-0.21-py3-none-any.whl.metadata
+     - 12.3 kB 84.8 MB/s 0:00:00
+Downloading networkx-3.5-py3-none-any.whl
+   - 2.0 MB 199.3 MB/s 0:00:00
+Downloading graphviz-0.21-py3-none-any.whl
+   - 47.3 kB 226.6 MB/s 0:00:00
+Installing collected packages: networkx, graphviz
+Successfully installed graphviz-0.21 networkx-3.5
