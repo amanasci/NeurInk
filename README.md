@@ -2,7 +2,7 @@
 
 **Publication-quality neural network diagram generation library**
 
-NeurInk is a research-grade Python library for creating beautiful, customizable neural network diagrams. It provides both a Python API and a domain-specific language (DSL) for defining network architectures, with SVG rendering and multiple publication themes.
+NeurInk is a research-grade Python library for creating beautiful, customizable neural network diagrams. Version 2.0 introduces support for complex, non-linear architectures with skip connections and branching.
 
 ## Features
 
@@ -10,9 +10,12 @@ NeurInk is a research-grade Python library for creating beautiful, customizable 
 - 🐍 **Python API**: Intuitive method chaining for building network architectures
 - 📝 **DSL Support**: Lightweight markup language for defining networks
 - 🎨 **Multiple Themes**: IEEE, APJ, Minimal, and Dark themes for different publication styles
-- 📐 **SVG Output**: Scalable vector graphics with optional PNG/PDF export
+- 📐 **SVG Output**: Scalable vector graphics with high-quality rendering using Graphviz
 - 🏗️ **Architecture Templates**: Pre-built templates for ResNet, UNet, Transformer, MLP
 - 🧪 **Fully Tested**: Comprehensive test suite ensures reliability
+- 🌐 **Graph-Based**: v2.0 supports complex architectures with skip connections and branching
+- 🏷️ **Named Layers**: Explicit layer naming for better control and connections
+- 🔗 **Skip Connections**: Create residual connections and complex topologies
 
 ## Installation
 
@@ -48,6 +51,29 @@ diagram = (Diagram()
 diagram.render("my_network.svg", theme="ieee")
 ```
 
+### New in v2.0: Named Layers and Skip Connections
+
+```python
+# Create ResNet-style architecture with skip connections
+diagram = Diagram()
+
+# Named layers for explicit connections
+diagram.input((224, 224, 3), name="input")
+diagram.conv(64, 7, stride=2, name="conv1")
+diagram.conv(64, 3, name="conv2_1")
+diagram.conv(64, 3, name="conv2_2") 
+diagram.conv(128, 3, stride=2, name="conv3")
+
+# Create skip connection
+diagram.connect("conv2_1", "conv3")
+
+diagram.flatten(name="pool")
+diagram.dense(512, name="fc")
+diagram.output(1000, name="classifier")
+
+diagram.render("resnet_style.svg", theme="ieee")
+```
+
 ### DSL Usage
 
 ```python
@@ -69,6 +95,28 @@ diagram = Diagram.from_string(dsl_text)
 diagram.render("dsl_network.svg", theme="minimal")
 ```
 
+### New in v2.0: Enhanced DSL with Connections
+
+```python
+# ResNet-style architecture with DSL
+dsl_text = """
+input size=224x224x3 name=input
+conv filters=64 kernel=7 stride=2 name=conv1
+conv filters=64 kernel=3 name=conv2_1
+conv filters=64 kernel=3 name=conv2_2
+conv filters=128 kernel=3 stride=2 name=conv3
+
+connect from=conv2_1 to=conv3
+
+flatten name=pool
+dense units=512 name=fc
+output units=1000 name=classifier
+"""
+
+diagram = Diagram.from_string(dsl_text)
+diagram.render("resnet_dsl.svg", theme="ieee")
+```
+
 ## API Reference
 
 ### Core Classes
@@ -78,14 +126,68 @@ diagram.render("dsl_network.svg", theme="minimal")
 Main class for building neural network diagrams.
 
 **Methods:**
-- `input(shape)` - Add input layer
-- `conv(filters, kernel_size, stride=1, activation="relu")` - Add convolutional layer
-- `dense(units, activation="relu")` - Add dense layer
-- `flatten()` - Add flatten layer
-- `dropout(rate)` - Add dropout layer  
-- `output(units, activation="softmax")` - Add output layer
+- `input(shape, name=None)` - Add input layer
+- `conv(filters, kernel_size, stride=1, activation="relu", name=None)` - Add convolutional layer
+- `conv_transpose(filters, kernel_size, stride=1, activation="relu", name=None)` - Add transposed convolution layer
+- `dense(units, activation="relu", name=None)` - Add dense layer
+- `flatten(name=None)` - Add flatten layer
+- `dropout(rate, name=None)` - Add dropout layer  
+- `output(units, activation="softmax", name=None)` - Add output layer
+- `maxpool(pool_size=2, stride=None, name=None)` - Add max pooling layer
+- `upsample(size=2, method="nearest", name=None)` - Add upsampling layer
+- `batch_norm(name=None)` - Add batch normalization layer
+- `layer_norm(name=None)` - Add layer normalization layer
+- `multi_head_attention(num_heads, key_dim, name=None)` - Add multi-head attention layer
+- `embedding(vocab_size, embed_dim, name=None)` - Add embedding layer
+- `positional_encoding(max_len, embed_dim, name=None)` - Add positional encoding layer
+- `reshape(target_shape, name=None)` - Add reshape layer
+- `global_avg_pool(name=None)` - Add global average pooling layer
+- `concatenate(axis=-1, name=None)` - Add concatenate layer
+- `add(name=None)` - Add element-wise addition layer
+- `connect(source_layer_name, dest_layer_name)` - Create connection between layers (v2.0)
 - `render(filename, theme="ieee")` - Render to SVG file
 - `from_string(dsl_text)` - Create from DSL (class method)
+- `get_layer_names()` - Get list of layer names (v2.0)
+
+### Layer Types
+
+NeurInk supports a comprehensive set of layer types for modern deep learning architectures:
+
+**Basic Layers:**
+- `input` - Input/data layers
+- `conv` - Convolutional layers for feature extraction
+- `dense` - Fully connected layers
+- `flatten` - Reshape multi-dimensional data to 1D
+- `dropout` - Regularization layers
+- `output` - Final output layers
+
+**Pooling & Sampling:**
+- `maxpool` - Max pooling for downsampling
+- `upsample` - Upsampling for increasing resolution
+- `conv_transpose` - Transposed convolution (deconvolution)
+- `global_avg_pool` - Global average pooling
+
+**Normalization:**
+- `batch_norm` - Batch normalization for training stability
+- `layer_norm` - Layer normalization for transformers
+
+**Transformer Components:**
+- `multi_head_attention` - Multi-head attention mechanism
+- `embedding` - Token embedding layers
+- `positional_encoding` - Positional encoding for sequences
+
+**Utility Layers:**
+- `reshape` - Reshape tensor dimensions
+- `concatenate` - Merge multiple inputs
+- `add` - Element-wise addition for residual connections
+
+### Architecture Support
+
+These layers enable you to create diagrams for:
+- **Computer Vision**: CNNs, ResNet, U-Net, Vision Transformers
+- **Natural Language Processing**: Transformers, BERT, GPT architectures  
+- **Generative Models**: GANs, VAEs, Diffusion models
+- **Custom Research**: Any complex topology with skip connections
 
 ### Themes
 
@@ -186,6 +288,23 @@ If you use NeurInk in your research, please cite:
 ```
 
 ## Changelog
+
+### v2.0.0 (Latest)
+- **Major Update**: Graph-based architecture support
+- **New Feature**: Named layers with optional `name` parameter
+- **New Feature**: Skip connections via `connect()` method
+- **Enhanced DSL**: Support for named layers and connection syntax
+- **Improved Rendering**: Upgraded to Graphviz for high-quality layouts
+- **Backward Compatible**: All existing code continues to work
+- **Better Visualization**: HTML-like labels with detailed layer information
+- **Complex Architectures**: Support for ResNet, U-Net, and custom topologies
+- **Expanded Layer Library**: 12 new layer types for modern architectures:
+  - Pooling: `maxpool`, `upsample`, `conv_transpose`, `global_avg_pool`
+  - Normalization: `batch_norm`, `layer_norm`
+  - Transformers: `multi_head_attention`, `embedding`, `positional_encoding`
+  - Utilities: `reshape`, `concatenate`, `add` (for residual connections)
+- **Enhanced Examples**: Added U-Net and Transformer examples in `example_v2.py`
+- **Complete Documentation**: Updated DSL syntax guide with all new layer types
 
 ### v0.1.0 (Initial Release)
 - Python API with method chaining

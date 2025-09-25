@@ -5,12 +5,17 @@ A research-grade library for creating beautiful, customizable neural network
 diagrams with Python API and DSL support.
 """
 
-__version__ = "0.1.0"
+__version__ = "2.0.0"
 __author__ = "NeurInk Contributors"
 
 from .diagram import Diagram
-from .layer import Layer, InputLayer, ConvLayer, DenseLayer, FlattenLayer, DropoutLayer, OutputLayer
-from .renderer import SVGRenderer
+from .layer import (
+    Layer, InputLayer, ConvLayer, DenseLayer, FlattenLayer, DropoutLayer, OutputLayer,
+    MaxPoolLayer, UpSampleLayer, ConvTransposeLayer, BatchNormLayer, LayerNormLayer,
+    MultiHeadAttentionLayer, EmbeddingLayer, PositionalEncodingLayer, ReshapeLayer,
+    GlobalAvgPoolLayer, ConcatenateLayer, AddLayer
+)
+from .renderer import SVGRenderer, GraphvizRenderer
 from .themes import Theme, IEEETheme, APJTheme, MinimalTheme, DarkTheme
 from .parser import DSLParser, DSLParseError
 from .templates import ResNetTemplate, UNetTemplate, TransformerTemplate, MLPTemplate
@@ -24,7 +29,20 @@ __all__ = [
     "FlattenLayer",
     "DropoutLayer",
     "OutputLayer",
+    "MaxPoolLayer",
+    "UpSampleLayer",
+    "ConvTransposeLayer",
+    "BatchNormLayer",
+    "LayerNormLayer",
+    "MultiHeadAttentionLayer",
+    "EmbeddingLayer",
+    "PositionalEncodingLayer",
+    "ReshapeLayer",
+    "GlobalAvgPoolLayer",
+    "ConcatenateLayer",
+    "AddLayer",
     "SVGRenderer",
+    "GraphvizRenderer",
     "Theme",
     "IEEETheme",
     "APJTheme",

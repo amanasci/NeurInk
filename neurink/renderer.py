@@ -2,10 +2,12 @@
 SVG renderer for neural network diagrams.
 
 Converts layer definitions to clean, scalable SVG output with
-theme support and automatic layout.
+theme support and automatic layout using Graphviz.
 """
 
 from typing import List, Dict, Any, Tuple
+import networkx as nx
+import graphviz
 from .layer import Layer
 from .themes import Theme
 
@@ -195,3 +197,168 @@ class SVGRenderer:
         if layout not in ["horizontal", "vertical"]:
             raise ValueError("Layout must be 'horizontal' or 'vertical'")
         self.layout = layout
+
+
+class GraphvizRenderer:
+    """Renders neural network diagrams using Graphviz for high-quality layout."""
+    
+    def __init__(self):
+        """Initialize the Graphviz renderer."""
+        pass
+        
+    def render(self, input_data, theme: Theme) -> str:
+        """
+        Render graph or layers to SVG string using Graphviz.
+        
+        Args:
+            input_data: NetworkX directed graph or list of layers (backward compatibility)
+            theme: Theme object for styling
+            
+        Returns:
+            SVG content as string
+        """
+        # Handle backward compatibility with list of layers
+        if isinstance(input_data, list):
+            # For backward compatibility, create a temporary graph from layers
+            import networkx as nx
+            graph = nx.DiGraph()
+            for i, layer in enumerate(input_data):
+                layer_name = f"{layer.layer_type}_{i+1}"
+                layer.name = layer_name
+                graph.add_node(layer_name, layer=layer)
+                if i > 0:
+                    prev_layer_name = f"{input_data[i-1].layer_type}_{i}"
+                    graph.add_edge(prev_layer_name, layer_name)
+        else:
+            # Input is already a graph
+            graph = input_data
+        
+        if len(graph) == 0:
+            return self._empty_svg(theme)
+            
+        colors = theme.get_colors()
+        
+        # Create Graphviz directed graph
+        dot = graphviz.Digraph(comment='Neural Network')
+        dot.attr(rankdir='LR')  # Left to right layout
+        dot.attr('graph', bgcolor=colors['background'])
+        dot.attr('node', 
+                 fontname='Arial',
+                 fontsize='10',
+                 style='filled',
+                 shape='box',
+                 margin='0.1')
+        dot.attr('edge', 
+                 color=colors['connection'],
+                 arrowhead='normal')
+        
+        # Add nodes to the graph
+        for node_name in graph.nodes():
+            layer = graph.nodes[node_name]['layer']
+            label = self._create_html_label(layer, colors)
+            dot.node(node_name, label, 
+                    fillcolor=self._get_layer_color(layer, colors),
+                    fontcolor=colors['text'])
+        
+        # Add edges to the graph
+        for source, target in graph.edges():
+            dot.edge(source, target)
+        
+        # Render to SVG
+        svg_content = dot.pipe(format='svg', encoding='utf-8')
+        return svg_content
+        
+    def _empty_svg(self, theme: Theme) -> str:
+        """Generate empty SVG for diagrams with no layers."""
+        colors = theme.get_colors()
+        return f'''<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <rect width="100%" height="100%" fill="{colors['background']}"/>
+  <text x="100" y="50" text-anchor="middle" font-family="Arial" font-size="14" fill="{colors['text']}">
+    Empty Diagram
+  </text>
+</svg>'''
+        
+    def _create_html_label(self, layer: Layer, colors: Dict[str, str]) -> str:
+        """Create HTML-like label for a layer node."""
+        shape_info = layer.get_shape_info()
+        
+        # Build table rows for layer information
+        header_color = colors.get("layer_stroke", "#333333")
+        rows = [
+            f'<TR><TD BGCOLOR="{header_color}" COLSPAN="2"><FONT COLOR="white"><B>{layer.layer_type.upper()}</B></FONT></TD></TR>'
+        ]
+        
+        # Add layer-specific information
+        if layer.layer_type == 'input':
+            rows.append(f'<TR><TD>Shape:</TD><TD>{shape_info.get("shape", "")}</TD></TR>')
+        elif layer.layer_type in ['conv', 'conv_transpose']:
+            rows.append(f'<TR><TD>Filters:</TD><TD>{shape_info.get("filters", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Kernel:</TD><TD>{shape_info.get("kernel_size", "")}</TD></TR>')
+            if shape_info.get("stride", 1) != 1:
+                rows.append(f'<TR><TD>Stride:</TD><TD>{shape_info.get("stride", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Activation:</TD><TD>{shape_info.get("activation", "")}</TD></TR>')
+        elif layer.layer_type in ['dense', 'output']:
+            rows.append(f'<TR><TD>Units:</TD><TD>{shape_info.get("units", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Activation:</TD><TD>{shape_info.get("activation", "")}</TD></TR>')
+        elif layer.layer_type == 'dropout':
+            rows.append(f'<TR><TD>Rate:</TD><TD>{shape_info.get("rate", "")}</TD></TR>')
+        elif layer.layer_type == 'flatten':
+            rows.append(f'<TR><TD COLSPAN="2">Flattens input</TD></TR>')
+        elif layer.layer_type == 'maxpool':
+            rows.append(f'<TR><TD>Pool Size:</TD><TD>{shape_info.get("pool_size", "")}</TD></TR>')
+            if shape_info.get("stride") != shape_info.get("pool_size"):
+                rows.append(f'<TR><TD>Stride:</TD><TD>{shape_info.get("stride", "")}</TD></TR>')
+        elif layer.layer_type == 'upsample':
+            rows.append(f'<TR><TD>Size:</TD><TD>{shape_info.get("size", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Method:</TD><TD>{shape_info.get("method", "")}</TD></TR>')
+        elif layer.layer_type in ['batch_norm', 'layer_norm']:
+            rows.append(f'<TR><TD COLSPAN="2">Normalizes activations</TD></TR>')
+        elif layer.layer_type == 'multi_head_attention':
+            rows.append(f'<TR><TD>Heads:</TD><TD>{shape_info.get("num_heads", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Key Dim:</TD><TD>{shape_info.get("key_dim", "")}</TD></TR>')
+        elif layer.layer_type == 'embedding':
+            rows.append(f'<TR><TD>Vocab Size:</TD><TD>{shape_info.get("vocab_size", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Embed Dim:</TD><TD>{shape_info.get("embed_dim", "")}</TD></TR>')
+        elif layer.layer_type == 'positional_encoding':
+            rows.append(f'<TR><TD>Max Len:</TD><TD>{shape_info.get("max_len", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Embed Dim:</TD><TD>{shape_info.get("embed_dim", "")}</TD></TR>')
+        elif layer.layer_type == 'reshape':
+            rows.append(f'<TR><TD>Shape:</TD><TD>{shape_info.get("target_shape", "")}</TD></TR>')
+        elif layer.layer_type == 'global_avg_pool':
+            rows.append(f'<TR><TD COLSPAN="2">Global average pooling</TD></TR>')
+        elif layer.layer_type == 'concatenate':
+            rows.append(f'<TR><TD>Axis:</TD><TD>{shape_info.get("axis", "")}</TD></TR>')
+        elif layer.layer_type == 'add':
+            rows.append(f'<TR><TD COLSPAN="2">Element-wise addition</TD></TR>')
+        
+        # Add layer name if it's not auto-generated
+        if hasattr(layer, 'name') and not layer.name.startswith(f"{layer.layer_type}_"):
+            rows.append(f'<TR><TD COLSPAN="2"><I>{layer.name}</I></TD></TR>')
+        
+        table_rows = ''.join(rows)
+        return f'<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">{table_rows}</TABLE>>'
+        
+    def _get_layer_color(self, layer: Layer, colors: Dict[str, str]) -> str:
+        """Get appropriate color for a layer type."""
+        layer_colors = {
+            'input': colors.get('input_fill', colors.get('layer_fill', '#f0f0f0')),
+            'conv': colors.get('conv_fill', colors.get('layer_fill', '#f0f0f0')),
+            'conv_transpose': colors.get('conv_fill', colors.get('layer_fill', '#f0f0f0')),
+            'dense': colors.get('dense_fill', colors.get('layer_fill', '#f0f0f0')),
+            'flatten': colors.get('layer_fill', '#f0f0f0'),
+            'dropout': colors.get('layer_fill', '#f0f0f0'),
+            'output': colors.get('output_fill', colors.get('layer_fill', '#f0f0f0')),
+            'maxpool': colors.get('layer_fill', '#e3f2fd'),
+            'upsample': colors.get('layer_fill', '#f3e5f5'),
+            'batch_norm': colors.get('layer_fill', '#fff3e0'),
+            'layer_norm': colors.get('layer_fill', '#fff3e0'),
+            'multi_head_attention': colors.get('layer_fill', '#e8f5e8'),
+            'embedding': colors.get('layer_fill', '#fce4ec'),
+            'positional_encoding': colors.get('layer_fill', '#fce4ec'),
+            'reshape': colors.get('layer_fill', '#f9fbe7'),
+            'global_avg_pool': colors.get('layer_fill', '#e3f2fd'),
+            'concatenate': colors.get('layer_fill', '#ede7f6'),
+            'add': colors.get('layer_fill', '#ede7f6')
+        }
+        return layer_colors.get(layer.layer_type, colors.get('layer_fill', '#f0f0f0'))

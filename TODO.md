@@ -1,69 +1,182 @@
-# NeurInk Development TODO
+# NeurInk v2.0 Development TODO
 
-This document tracks the development progress of the NeurInk library for generating publication-quality neural network diagrams.
+This document tracks the development progress and future roadmap for NeurInk v2.0, which introduces graph-based architecture support for complex, non-linear neural networks.
 
-## Phase 1: Project Structure & Core Foundation
-- [x] Create project directory structure (neurink/, tests/, docs/)
-- [x] Create pyproject.toml with dependencies
-- [x] Create TODO.md with detailed task breakdown
-- [x] Set up basic project files (.gitignore, etc.)
-- [x] Create basic neurink package structure
+## Completed in v2.0 ✅
 
-## Phase 2: Core Library Components
-- [x] Implement Layer base classes and layer definitions
-- [x] Implement core Diagram class with method chaining
-- [x] Implement input() method
-- [x] Implement conv() method  
-- [x] Implement dense() method
-- [x] Implement flatten(), dropout(), output() methods
-- [x] Create SVG renderer with basic functionality
-- [x] Implement render() method with SVG output
+### Core Architecture Upgrade
+- [x] **Graph-Based Foundation**
+  - [x] Replace list-based layer storage with NetworkX DiGraph
+  - [x] Implement automatic layer naming system
+  - [x] Add `connect(source, target)` method for explicit connections
+  - [x] Maintain backward compatibility with existing APIs
+  - [x] Add `get_layer_names()` method for introspection
 
-## Phase 3: DSL Parser
-- [x] Choose and implement DSL parser (basic implementation)
-- [x] Support basic DSL syntax (input, conv, dense, etc.)
-- [ ] Support hierarchical groups in DSL (future enhancement)
-- [x] Implement Diagram.from_string() API
-- [x] Add error handling for invalid DSL
-- [ ] Enhance DSL parser with lark/pyparsing for complex syntax (future enhancement)
+### Enhanced DSL Parser
+- [x] **Named Layers Support**
+  - [x] Support `name=layer_name` parameter in all layer types
+  - [x] Automatic name generation when not specified
+  - [x] Connection syntax: `connect from=source to=target`
+  - [x] Backward compatibility with existing DSL files
+  - [x] Comprehensive error handling and validation
 
-## Phase 4: Themes & Styling
-- [x] Create theme system with base Theme class
-- [x] Implement ieee theme
-- [x] Implement apj theme
-- [x] Implement minimal theme
-- [x] Implement dark theme
+### Advanced Rendering Engine
+- [x] **Graphviz Integration**
+  - [x] Replace manual SVG generation with Graphviz
+  - [x] HTML-like labels with detailed layer information
+  - [x] Support for complex graph layouts (skip connections, branching)
+  - [x] Theme system integration with new renderer
+  - [x] Backward compatibility for template rendering
 
-## Phase 5: Templates & Advanced Features
-- [x] Create template system for common architectures
-- [x] Implement ResNet template
-- [x] Implement UNet template
-- [x] Implement Transformer template
-- [x] Implement MLP template
-- [x] Add utility functions
+### Testing & Quality Assurance
+- [x] **Comprehensive Test Coverage**
+  - [x] All 87 existing tests pass without modification
+  - [x] Graph functionality tests
+  - [x] Named layer tests  
+  - [x] Connection method tests
+  - [x] Enhanced DSL parser tests
+  - [x] Rendering compatibility tests
 
-## Phase 6: Testing
-- [x] Write tests for Diagram class methods
-- [x] Write tests for DSL parser functionality
-- [x] Write tests for SVG renderer
-- [x] Write tests for themes
-- [x] Write tests for templates
-- [x] Ensure all tests pass (87/87 tests passing ✅)
+### Documentation & Examples
+- [x] **Updated Documentation**
+  - [x] Enhanced README.md with v2.0 features
+  - [x] Updated DSL.md with new syntax and examples
+  - [x] Created comprehensive example_v2.py
+  - [x] ResNet-style architecture examples
+  - [x] Skip connection demonstrations
 
-## Phase 7: Documentation
-- [x] Write comprehensive README.md
-- [x] Write DSL.md documentation
-- [x] Write TUTORIAL.md walkthrough
-- [x] Add inline docstrings to all classes/methods
-- [x] Create example scripts
+## Future Enhancements (v2.1+)
 
-## Phase 8: Optional Features
-- [ ] Add PNG/PDF export capabilities
-- [ ] Create optional GUI with Streamlit/Gradio
-- [ ] Performance optimizations
+### Advanced DSL Features
+- [ ] **Hierarchical Grouping**
+  - [ ] Support for nested blocks: `encoder { ... } decoder { ... }`
+  - [ ] Group-level connections and operations
+  - [ ] Named group references
+  - [ ] Block templates and reusability
+
+- [ ] **Enhanced Syntax**
+  - [ ] Comment support with `#` or `//`
+  - [ ] Multi-line parameter definitions
+  - [ ] Variable definitions and substitutions
+  - [ ] Conditional layer inclusion
+
+### Advanced Graph Operations
+- [ ] **Graph Algorithms**
+  - [ ] Automatic layout optimization for complex graphs
+  - [ ] Cycle detection and validation
+  - [ ] Graph simplification and merging
+  - [ ] Subgraph extraction and composition
+
+- [ ] **Advanced Connection Types**
+  - [ ] Weighted connections with visual representation
+  - [ ] Connection labels and annotations  
+  - [ ] Conditional connections
+  - [ ] Multi-output and multi-input explicit handling
+
+### Rendering Improvements
+- [ ] **Layout Enhancements**
+  - [ ] Hierarchical layouts for deep networks
+  - [ ] Circular layouts for recurrent architectures
+  - [ ] Custom positioning hints and constraints
+  - [ ] Interactive SVG with hover information
+
+- [ ] **Export Formats**
+  - [ ] PNG export with high DPI support
+  - [ ] PDF export for publications
+  - [ ] LaTeX/TikZ export for academic papers
+  - [ ] Interactive HTML export
+
+### Advanced Architecture Support
+- [ ] **Specialized Layer Types**
+  - [ ] Attention layers (self-attention, cross-attention)
+  - [ ] Normalization layers (BatchNorm, LayerNorm, GroupNorm)
+  - [ ] Pooling layers (MaxPool, AvgPool, AdaptivePool)
+  - [ ] Recurrent layers (LSTM, GRU, RNN)
+  - [ ] Transformer blocks
+
+- [ ] **Architecture Templates**
+  - [ ] Vision Transformer (ViT) template
+  - [ ] BERT/GPT-style transformer templates
+  - [ ] GAN architectures (Generator/Discriminator)
+  - [ ] Autoencoder templates
+  - [ ] Custom template definition system
+
+### Developer Experience
+- [ ] **Tooling & IDE Support**
+  - [ ] VS Code extension for DSL syntax highlighting
+  - [ ] Language server protocol support
+  - [ ] Auto-completion for layer types and parameters
+  - [ ] Real-time validation and error checking
+
+- [ ] **CLI Tools**
+  - [ ] Command-line diagram generation
+  - [ ] Batch processing of DSL files
+  - [ ] Format conversion utilities
+  - [ ] Validation and linting tools
+
+### Performance & Scalability  
+- [ ] **Large Network Support**
+  - [ ] Efficient handling of networks with 1000+ layers
+  - [ ] Lazy evaluation for large graphs  
+  - [ ] Streaming rendering for memory efficiency
+  - [ ] Parallel processing support
+
+- [ ] **Caching & Optimization**
+  - [ ] Layout caching for repeated renders
+  - [ ] Incremental updates for interactive editing
+  - [ ] Memory usage optimization
+  - [ ] Rendering performance profiling
+
+## Optional/Experimental Features
+
+### GUI Applications
+- [ ] **Desktop Application**
+  - [ ] Standalone GUI for network design
+  - [ ] Drag-and-drop interface
+  - [ ] Real-time preview
+  - [ ] Export management
+
+- [ ] **Web Interface**  
+  - [ ] Browser-based editor
+  - [ ] Collaborative editing
+  - [ ] Cloud-based rendering
+  - [ ] Gallery of public diagrams
+
+### Integration & Ecosystem
+- [ ] **Framework Integration**
+  - [ ] PyTorch model introspection
+  - [ ] TensorFlow/Keras model import
+  - [ ] ONNX model visualization
+  - [ ] Hugging Face model support
+
+- [ ] **Research Tools**
+  - [ ] Jupyter notebook magic commands
+  - [ ] Streamlit/Gradio components
+  - [ ] Paper template integration
+  - [ ] Citation management
+
+## Development Guidelines
+
+### Contributing
+- Maintain 100% backward compatibility unless major version bump
+- All new features must include comprehensive tests
+- Documentation must be updated for any API changes
+- Follow existing code style and conventions
+
+### Release Process
+- Minor versions (v2.x) for new features with backward compatibility
+- Patch versions (v2.x.y) for bug fixes only
+- Major versions (v3.0) for breaking changes only
+- Alpha/Beta releases for experimental features
+
+### Testing Requirements
+- Unit tests for all new functionality
+- Integration tests for complex features
+- Backward compatibility tests for all changes
+- Performance regression tests for core features
 
 ## Notes
-- Tests should pass before marking any task as [x] done
-- Update documentation incrementally after each task
-- Ensure SVG output is clean and scalable
-- Follow PEP8 and Python best practices
+- This TODO represents the roadmap and may be adjusted based on user feedback
+- Feature priorities may change based on community requests
+- Contributors are welcome to pick up any unclaimed items
+- See CONTRIBUTING.md for development setup and guidelines
