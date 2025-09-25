@@ -205,7 +205,7 @@ def create_unet_dsl():
     dsl_text = """
     input size=256x256x1 name=input
     
-    # Encoder path
+
     conv filters=64 kernel=3 activation=relu name=enc_conv1_1
     conv filters=64 kernel=3 activation=relu name=enc_conv1_2
     maxpool pool_size=2 name=pool1
@@ -218,11 +218,11 @@ def create_unet_dsl():
     conv filters=256 kernel=3 activation=relu name=enc_conv3_2
     maxpool pool_size=2 name=pool3
     
-    # Bottleneck
+
     conv filters=512 kernel=3 activation=relu name=bottleneck_conv1
     conv filters=512 kernel=3 activation=relu name=bottleneck_conv2
     
-    # Decoder path
+
     conv_transpose filters=256 kernel=2 stride=2 activation=relu name=dec_up3
     concatenate name=concat3
     connect from=enc_conv3_2 to=concat3
@@ -241,7 +241,7 @@ def create_unet_dsl():
     conv filters=64 kernel=3 activation=relu name=dec_conv1_1
     conv filters=64 kernel=3 activation=relu name=dec_conv1_2
     
-    # Output
+
     conv filters=1 kernel=1 activation=sigmoid name=output_conv
     """
     
@@ -307,12 +307,12 @@ def create_transformer_dsl():
     print("\nCreating Transformer encoder architecture with DSL...")
     
     dsl_text = """
-    # Input processing
+
     embedding vocab_size=10000 embed_dim=512 name=token_embedding
     positional_encoding max_len=5000 embed_dim=512 name=pos_encoding
     add name=embed_add
     
-    # First transformer block  
+  
     multi_head_attention num_heads=8 key_dim=64 name=mha1
     add name=skip_add1
     connect from=embed_add to=skip_add1
@@ -324,7 +324,7 @@ def create_transformer_dsl():
     connect from=norm1 to=skip_add2
     layer_norm name=norm2
     
-    # Second transformer block
+
     multi_head_attention num_heads=8 key_dim=64 name=mha2
     add name=skip_add3
     connect from=norm2 to=skip_add3
@@ -335,8 +335,8 @@ def create_transformer_dsl():
     add name=skip_add4
     connect from=norm3 to=skip_add4
     layer_norm name=final_norm
+
     
-    # Output head
     global_avg_pool name=pool
     dense units=256 activation=relu name=head_dense
     output units=10 activation=softmax name=classification
