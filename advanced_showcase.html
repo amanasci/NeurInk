@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NeurInk Advanced Layout Features - Best-in-Class Neural Network Diagram Designer</title>
+    <style>
+        body { font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); padding: 40px; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 10px; font-size: 2.5em; font-weight: 700; }
+        .subtitle { text-align: center; color: #7f8c8d; font-size: 1.2em; margin-bottom: 40px; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin: 40px 0; }
+        .feature-card { background: #f8f9fa; padding: 25px; border-radius: 12px; border-left: 5px solid #3498db; }
+        .feature-card h3 { color: #2c3e50; margin-top: 0; display: flex; align-items: center; }
+        .feature-card .icon { font-size: 24px; margin-right: 10px; }
+        .demo-section { margin: 50px 0; }
+        .demo-section h2 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0; }
+        .demo-item { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .demo-item img { width: 100%; border: 2px solid #ecf0f1; border-radius: 8px; }
+        .demo-item h4 { margin-top: 0; color: #2c3e50; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 30px 0; }
+        .stat-card { text-align: center; background: #3498db; color: white; padding: 20px; border-radius: 12px; }
+        .stat-number { font-size: 2.5em; font-weight: bold; display: block; }
+        .stat-label { font-size: 0.9em; opacity: 0.9; }
+        .highlight-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; margin: 40px 0; text-align: center; }
+        .highlight-box h2 { margin-top: 0; }
+        .code-example { background: #2c3e50; color: #ecf0f1; padding: 20px; border-radius: 8px; margin: 20px 0; overflow-x: auto; }
+        .code-example pre { margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 NeurInk Advanced Layout Features</h1>
+        <div class="subtitle">Best-in-Class Neural Network Diagram Designer with Advanced Layout Algorithms</div>
+        
+        <div class="highlight-box">
+            <h2>🚀 Evolved into a Professional Diagram Designer</h2>
+            <p>NeurInk now supports complex architectures with hierarchical grouping, custom connections, and professional Bezier curve routing - perfect for research publications and presentations.</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">2</span>
+                <span class="stat-label">Major New Features</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">5</span>
+                <span class="stat-label">Connection Styles</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">∞</span>
+                <span class="stat-label">Architecture Complexity</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">100%</span>
+                <span class="stat-label">Publication Ready</span>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3><span class="icon">🔗</span>Complex Custom Connections</h3>
+                <p>Add connections between any layers using <code>add_connection(source, target, style)</code>. Supports skip, attention, and custom connection styles with professional Bezier curve routing.</p>
+                <div class="code-example">
+                    <pre>diagram.add_connection('conv1', 'conv5', style='skip')
+diagram.add_connection('attention1', 'output', style='attention')</pre>
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="icon">📦</span>Hierarchical Layer Grouping</h3>
+                <p>Group layers into logical blocks with visual bounding boxes using context managers. Perfect for organizing complex architectures.</p>
+                <div class="code-example">
+                    <pre>with diagram.group("Encoder", style={"fill": "#f0f0f0"}) as enc:
+    enc.conv(64, 3)
+    enc.batch_norm()</pre>
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="icon">🎯</span>Professional Bezier Routing</h3>
+                <p>Skip connections use sophisticated curve algorithms to avoid layer overlaps and create clear visual paths.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3><span class="icon">✨</span>Enhanced Visual Styling</h3>
+                <p>Groups support custom styling with fills, strokes, and opacity. Connections have different visual styles for different semantic meanings.</p>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🏗️ Advanced Architecture Demonstrations</h2>
+            
+            <div class="demo-grid">
+                <div class="demo-item">
+                    <h4>🔄 ResNet with Residual Blocks</h4>
+                    <img src="advanced_resnet_demo.svg" alt="Advanced ResNet Demo">
+                    <p><strong>20 layers, 5 groups, 5 connections</strong><br>
+                    Proper residual blocks with skip connections and grouped processing stages.</p>
+                </div>
+                
+                <div class="demo-item">
+                    <h4>🧠 Transformer Architecture</h4>
+                    <img src="advanced_transformer_demo.svg" alt="Advanced Transformer Demo">
+                    <p><strong>16 layers, 6 groups, 7 connections</strong><br>
+                    Multi-head attention blocks with residual connections and attention flow visualization.</p>
+                </div>
+                
+                <div class="demo-item">
+                    <h4>🎯 U-Net Encoder-Decoder</h4>
+                    <img src="advanced_unet_demo.svg" alt="Advanced U-Net Demo">
+                    <p><strong>19 layers, 8 groups, 4 connections</strong><br>
+                    Proper encoder-decoder structure with skip connections for segmentation.</p>
+                </div>
+                
+                <div class="demo-item">
+                    <h4>🌐 Multi-Path Architecture</h4>
+                    <img src="advanced_multipath_demo.svg" alt="Advanced Multi-Path Demo">
+                    <p><strong>16 layers, 6 groups, 10 connections</strong><br>
+                    Complex multi-path processing with feature fusion and cross-path attention.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>💻 Simple API for Complex Architectures</h2>
+            
+            <div class="code-example">
+                <pre># Create complex ResNet with groups and skip connections
+diagram = Diagram()
+
+with diagram.group("Residual Block", style={"fill": "#e3f2fd"}) as block:
+    block.conv(64, 3, name="conv1")
+    block.batch_norm(name="bn1")
+    block.conv(64, 3, name="conv2")
+    block.batch_norm(name="bn2")
+
+# Add skip connection
+diagram.add_connection("conv1", "bn2", style="skip")
+
+# Render with professional theme
+diagram.render("complex_resnet.svg", theme="nnsvg")</pre>
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <h2>🎯 Perfect for Research & Publications</h2>
+            <p>Generate publication-quality diagrams with proper architectural representation, professional styling, and clear visual hierarchy. Supports modern architectures like ResNets, Transformers, U-Nets, and custom multi-path designs.</p>
+        </div>
+
+        <div class="demo-section">
+            <h2>🚀 Key Technical Achievements</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>🔗 Custom Connection System</h3>
+                    <p>Track and render connections between any named layers with multiple visual styles (skip, attention, residual).</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>📦 Layer Grouping Context Manager</h3>
+                    <p>Intuitive Python context manager API for creating hierarchical groups with visual bounding boxes.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🎨 Professional SVG Rendering</h3>
+                    <p>Enhanced renderer with Bezier curves, group bounding boxes, and sophisticated visual effects.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🏗️ Architectural Graph Analysis</h3>
+                    <p>Smart analysis of layer relationships and connection patterns for optimal layout algorithms.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

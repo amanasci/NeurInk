@@ -26,9 +26,66 @@ class ProfessionalSVGRenderer:
         """Initialize the professional renderer."""
         self.layout = "horizontal"
         
+    def render_diagram(self, diagram, theme: Theme) -> str:
+        """
+        Render a complete diagram with advanced features to professional-quality SVG.
+        
+        Args:
+            diagram: Diagram object with layers, connections, and groups
+            theme: Theme object for styling
+            
+        Returns:
+            Professional SVG content as string
+        """
+        if not diagram.layers:
+            return self._empty_svg(theme)
+            
+        colors = theme.get_colors()
+        styles = theme.get_styles()
+        typography = theme.get_typography()
+        
+        # Analyze architecture for skip connections and custom connections
+        architecture_graph = self._analyze_architecture(diagram.layers)
+        
+        # Add custom connections to the graph
+        for connection in diagram.connections:
+            architecture_graph['custom_connections'] = architecture_graph.get('custom_connections', [])
+            architecture_graph['custom_connections'].append(connection)
+        
+        # Calculate professional layout with proper skip connections
+        positions = self._calculate_professional_layout(diagram.layers, architecture_graph, styles)
+        
+        # Calculate canvas size with proper margins for groups
+        canvas_width, canvas_height = self._calculate_canvas_size_with_groups(
+            positions, diagram.groups, styles)
+        
+        # Generate professional SVG with advanced styling
+        svg_parts = []
+        svg_parts.append(self._professional_svg_header(canvas_width, canvas_height, colors))
+        svg_parts.append(self._advanced_svg_defs(theme))
+        
+        # Render layer groups first (as background)
+        if diagram.groups:
+            svg_parts.append(self._render_layer_groups(diagram.groups, diagram.layers, positions, colors, styles))
+        
+        # Render professional connections with proper skip connection paths
+        if len(diagram.layers) > 1 or diagram.connections:
+            svg_parts.append(self._render_professional_connections(
+                diagram.layers, architecture_graph, positions, colors, styles))
+        
+        # Render layers with advanced 3D styling
+        for i, layer in enumerate(diagram.layers):
+            x, y = positions[i]
+            svg_parts.append(self._render_professional_layer(
+                layer, x, y, colors, styles, typography))
+            
+        svg_parts.append("</svg>")
+        
+        return "\n".join(svg_parts)
+
     def render(self, layers: List[Layer], theme: Theme) -> str:
         """
-        Render layers to professional-quality SVG.
+        Render layers to professional-quality SVG (backward compatibility).
         
         Args:
             layers: List of layer objects to render
@@ -307,6 +364,13 @@ class ProfessionalSVGRenderer:
         marker-end="url(#skip-arrowhead)"
         style="filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.2))"/>''')
         
+        # Add custom connections if available
+        if 'custom_connections' in architecture_graph:
+            custom_svg = self._render_custom_connections(
+                architecture_graph['custom_connections'], layers, positions, colors, styles)
+            if custom_svg:
+                connections.append(custom_svg)
+        
         return "\n".join(connections)
         
     def _render_professional_layer(self, layer: Layer, x: int, y: int,
@@ -398,6 +462,127 @@ class ProfessionalSVGRenderer:
         height = max_y - min_y + styles["layer_height"] + margin_y
         
         return width, height
+        
+    def _calculate_canvas_size_with_groups(self, positions: List[Tuple[int, int]], 
+                                         groups: List, styles: Dict[str, Any]) -> Tuple[int, int]:
+        """Calculate canvas size including space for group bounding boxes."""
+        base_width, base_height = self._calculate_canvas_size(positions, styles)
+        
+        # Add extra space for group labels and padding
+        if groups:
+            group_padding = styles.get("group_padding", 30)
+            base_width += group_padding * 2
+            base_height += group_padding * 2
+            
+        return base_width, base_height
+        
+    def _render_layer_groups(self, groups: List, layers: List[Layer], 
+                           positions: List[Tuple[int, int]], colors: Dict[str, str], 
+                           styles: Dict[str, Any]) -> str:
+        """Render visual bounding boxes for layer groups."""
+        group_svg_parts = []
+        
+        for group in groups:
+            if not group.layers:
+                continue
+                
+            # Find positions of layers in this group
+            group_positions = []
+            for i, layer in enumerate(layers):
+                if layer.name in group.layers:
+                    group_positions.append(positions[i])
+                    
+            if not group_positions:
+                continue
+                
+            # Calculate bounding box for the group
+            min_x = min(pos[0] for pos in group_positions) - styles["layer_width"] // 2
+            max_x = max(pos[0] for pos in group_positions) + styles["layer_width"] // 2
+            min_y = min(pos[1] for pos in group_positions) - styles["layer_height"] // 2
+            max_y = max(pos[1] for pos in group_positions) + styles["layer_height"] // 2
+            
+            # Add padding
+            padding = styles.get("group_padding", 20)
+            min_x -= padding
+            max_x += padding
+            min_y -= padding
+            max_y += padding
+            
+            # Get group styling
+            group_fill = group.style.get("fill", "#f8f9fa")
+            group_stroke = group.style.get("stroke", "#dee2e6")
+            group_stroke_width = group.style.get("stroke-width", "2")
+            group_opacity = group.style.get("opacity", "0.3")
+            
+            # Render group bounding box
+            group_svg_parts.append(f'''  <g class="layer-group" id="group-{group.name}">
+    <rect x="{min_x}" y="{min_y}" width="{max_x - min_x}" height="{max_y - min_y}"
+          fill="{group_fill}" stroke="{group_stroke}" 
+          stroke-width="{group_stroke_width}" opacity="{group_opacity}"
+          rx="8" ry="8" stroke-dasharray="5,5"/>
+    <text x="{min_x + 10}" y="{min_y - 5}" 
+          font-family="Source Sans Pro, Arial, sans-serif" 
+          font-size="12px" font-weight="600"
+          fill="{colors['text']}">{group.name}</text>
+  </g>''')
+        
+        return "\n".join(group_svg_parts)
+        
+    def _render_custom_connections(self, custom_connections: List, layers: List[Layer],
+                                 positions: List[Tuple[int, int]], colors: Dict[str, str],
+                                 styles: Dict[str, Any]) -> str:
+        """Render custom connections between named layers."""
+        connection_svg_parts = []
+        
+        # Create a mapping from layer names to positions
+        name_to_position = {}
+        for i, layer in enumerate(layers):
+            name_to_position[layer.name] = positions[i]
+            
+        for connection in custom_connections:
+            if connection.source_name not in name_to_position or connection.target_name not in name_to_position:
+                continue  # Skip connections to non-existent layers
+                
+            source_x, source_y = name_to_position[connection.source_name]
+            target_x, target_y = name_to_position[connection.target_name]
+            
+            # Calculate connection points
+            start_x = source_x + styles["layer_width"] // 2
+            start_y = source_y
+            end_x = target_x - styles["layer_width"] // 2
+            end_y = target_y
+            
+            # Style based on connection type
+            if connection.style == "skip":
+                # Curved skip connection
+                mid_x = (start_x + end_x) / 2
+                control_y = min(start_y, end_y) - 40
+                
+                connection_svg_parts.append(f'''  <path d="M {start_x},{start_y} Q {mid_x},{control_y} {end_x},{end_y}" 
+        stroke="{colors.get('skip_connection', colors['connection'])}" 
+        stroke-width="{styles['connection_width'] + 1}" 
+        stroke-dasharray="6,4" 
+        stroke-linecap="round"
+        fill="none" 
+        opacity="0.8"
+        marker-end="url(#skip-arrowhead)"/>''')
+            elif connection.style == "attention":
+                # Dotted attention connection
+                connection_svg_parts.append(f'''  <path d="M {start_x},{start_y} L {end_x},{end_y}" 
+        stroke="{colors.get('attention_connection', '#7e57c2')}" 
+        stroke-width="{styles['connection_width']}" 
+        stroke-dasharray="2,3" 
+        stroke-linecap="round"
+        marker-end="url(#arrowhead)"/>''')
+            else:
+                # Standard connection
+                connection_svg_parts.append(f'''  <path d="M {start_x},{start_y} L {end_x},{end_y}" 
+        stroke="{colors['connection']}" 
+        stroke-width="{styles['connection_width']}" 
+        stroke-linecap="round"
+        marker-end="url(#arrowhead)"/>''')
+        
+        return "\n".join(connection_svg_parts)
         
     def _empty_svg(self, theme: Theme) -> str:
         """Generate professional empty SVG."""
