@@ -178,3 +178,114 @@ class OutputLayer(Layer):
             "type": "output",
             "display_text": f"Output {self.units}"
         }
+
+
+class AttentionLayer(Layer):
+    """Multi-head attention layer for Transformers."""
+    
+    def __init__(self, num_heads: int = 8, key_dim: int = 64, **kwargs):
+        """
+        Initialize an attention layer.
+        
+        Args:
+            num_heads: Number of attention heads
+            key_dim: Dimension of keys/queries
+            **kwargs: Additional parameters
+        """
+        super().__init__("attention", num_heads=num_heads, key_dim=key_dim, **kwargs)
+        self.num_heads = num_heads
+        self.key_dim = key_dim
+        
+    def get_shape_info(self) -> Dict[str, Any]:
+        """Get attention layer information."""
+        return {
+            "num_heads": self.num_heads,
+            "key_dim": self.key_dim,
+            "type": "attention",
+            "display_text": f"Attention {self.num_heads}h"
+        }
+
+
+class LayerNormLayer(Layer):
+    """Layer normalization layer."""
+    
+    def __init__(self, **kwargs):
+        """Initialize a layer norm layer."""
+        super().__init__("layernorm", **kwargs)
+        
+    def get_shape_info(self) -> Dict[str, Any]:
+        """Get layer norm information."""
+        return {
+            "type": "layernorm",
+            "display_text": "LayerNorm"
+        }
+
+
+class EmbeddingLayer(Layer):
+    """Embedding layer for sequence models."""
+    
+    def __init__(self, vocab_size: int, embed_dim: int, **kwargs):
+        """
+        Initialize an embedding layer.
+        
+        Args:
+            vocab_size: Size of vocabulary
+            embed_dim: Embedding dimension
+            **kwargs: Additional parameters
+        """
+        super().__init__("embedding", vocab_size=vocab_size, embed_dim=embed_dim, **kwargs)
+        self.vocab_size = vocab_size
+        self.embed_dim = embed_dim
+        
+    def get_shape_info(self) -> Dict[str, Any]:
+        """Get embedding layer information."""
+        return {
+            "vocab_size": self.vocab_size,
+            "embed_dim": self.embed_dim,
+            "type": "embedding",
+            "display_text": f"Embed {self.vocab_size}→{self.embed_dim}"
+        }
+
+
+class PoolingLayer(Layer):
+    """Pooling layer (MaxPool, AvgPool, etc.)."""
+    
+    def __init__(self, pool_type: str = "max", pool_size: int = 2, stride: int = 2, **kwargs):
+        """
+        Initialize a pooling layer.
+        
+        Args:
+            pool_type: Type of pooling ('max', 'avg', 'global_avg')
+            pool_size: Size of pooling window
+            stride: Stride of pooling
+            **kwargs: Additional parameters
+        """
+        super().__init__("pooling", pool_type=pool_type, pool_size=pool_size, stride=stride, **kwargs)
+        self.pool_type = pool_type
+        self.pool_size = pool_size
+        self.stride = stride
+        
+    def get_shape_info(self) -> Dict[str, Any]:
+        """Get pooling layer information."""
+        return {
+            "pool_type": self.pool_type,
+            "pool_size": self.pool_size,
+            "stride": self.stride,
+            "type": "pooling",
+            "display_text": f"{self.pool_type.title()}Pool {self.pool_size}x{self.pool_size}"
+        }
+
+
+class BatchNormLayer(Layer):
+    """Batch normalization layer."""
+    
+    def __init__(self, **kwargs):
+        """Initialize a batch norm layer."""
+        super().__init__("batchnorm", **kwargs)
+        
+    def get_shape_info(self) -> Dict[str, Any]:
+        """Get batch norm information."""
+        return {
+            "type": "batchnorm",
+            "display_text": "BatchNorm"
+        }

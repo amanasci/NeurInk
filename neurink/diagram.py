@@ -8,7 +8,9 @@ for building neural network architectures.
 from typing import List, Union, Tuple, Optional
 from .layer import (
     Layer, InputLayer, ConvLayer, DenseLayer, 
-    FlattenLayer, DropoutLayer, OutputLayer
+    FlattenLayer, DropoutLayer, OutputLayer,
+    AttentionLayer, LayerNormLayer, EmbeddingLayer,
+    PoolingLayer, BatchNormLayer
 )
 from .renderer import SVGRenderer
 from .themes import Theme, IEEETheme
@@ -118,6 +120,74 @@ class Diagram:
         self.layers.append(layer)
         return self
         
+    def attention(self, num_heads: int = 8, key_dim: int = 64) -> 'Diagram':
+        """
+        Add a multi-head attention layer to the diagram.
+        
+        Args:
+            num_heads: Number of attention heads (default: 8)
+            key_dim: Dimension of keys/queries (default: 64)
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = AttentionLayer(num_heads, key_dim)
+        self.layers.append(layer)
+        return self
+        
+    def layer_norm(self) -> 'Diagram':
+        """
+        Add a layer normalization layer to the diagram.
+        
+        Returns:
+            Self for method chaining
+        """
+        layer = LayerNormLayer()
+        self.layers.append(layer)
+        return self
+        
+    def embedding(self, vocab_size: int, embed_dim: int) -> 'Diagram':
+        """
+        Add an embedding layer to the diagram.
+        
+        Args:
+            vocab_size: Size of vocabulary
+            embed_dim: Embedding dimension
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = EmbeddingLayer(vocab_size, embed_dim)
+        self.layers.append(layer)
+        return self
+        
+    def pooling(self, pool_type: str = "max", pool_size: int = 2, stride: int = 2) -> 'Diagram':
+        """
+        Add a pooling layer to the diagram.
+        
+        Args:
+            pool_type: Type of pooling ('max', 'avg', 'global_avg')
+            pool_size: Size of pooling window (default: 2)
+            stride: Stride of pooling (default: 2)
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = PoolingLayer(pool_type, pool_size, stride)
+        self.layers.append(layer)
+        return self
+        
+    def batch_norm(self) -> 'Diagram':
+        """
+        Add a batch normalization layer to the diagram.
+        
+        Returns:
+            Self for method chaining
+        """
+        layer = BatchNormLayer()
+        self.layers.append(layer)
+        return self
+        
     def render(self, filename: str, theme: Union[str, Theme] = "ieee") -> str:
         """
         Render the diagram to SVG format.
@@ -143,13 +213,14 @@ class Diagram:
         
     def _get_theme_by_name(self, theme_name: str) -> Theme:
         """Get theme object by name."""
-        from .themes import APJTheme, MinimalTheme, DarkTheme
+        from .themes import APJTheme, MinimalTheme, DarkTheme, NNSVGTheme
         
         theme_map = {
             "ieee": IEEETheme(),
             "apj": APJTheme(),
             "minimal": MinimalTheme(), 
-            "dark": DarkTheme()
+            "dark": DarkTheme(),
+            "nnsvg": NNSVGTheme()
         }
         
         if theme_name not in theme_map:

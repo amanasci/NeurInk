@@ -186,3 +186,54 @@ class DarkTheme(Theme):
             "font_weight": "normal",
             "text_anchor": "middle"
         }
+
+
+class NNSVGTheme(Theme):
+    """NN-SVG inspired theme - 3D layered blocks with gradients and depth."""
+    
+    def get_colors(self) -> Dict[str, str]:
+        """NN-SVG color scheme with gradients and depth."""
+        return {
+            "background": "#f8f9fa",
+            "layer_fill": "#ffffff",
+            "layer_stroke": "#495057",
+            "input_fill": "#4fc3f7",
+            "conv_fill": "#ff7043", 
+            "dense_fill": "#ab47bc",
+            "output_fill": "#66bb6a",
+            "flatten_fill": "#ffa726",
+            "dropout_fill": "#ec407a",
+            "attention_fill": "#7e57c2",
+            "layernorm_fill": "#5c6bc0",
+            "embedding_fill": "#42a5f5",
+            "pooling_fill": "#26a69a",
+            "batchnorm_fill": "#78909c",
+            "connection": "#6c757d",
+            "text": "#212529",
+            "shadow": "#00000020"
+        }
+        
+    def get_styles(self) -> Dict[str, Any]:
+        """NN-SVG styling parameters with 3D effect."""
+        return {
+            "layer_width": 80,
+            "layer_height": 50,
+            "layer_depth": 12,  # 3D depth effect
+            "layer_spacing_x": 140,
+            "layer_spacing_y": 100,
+            "border_radius": 6,
+            "stroke_width": 1.5,
+            "connection_width": 2,
+            "padding": 50,
+            "shadow_offset": 4,
+            "gradient_opacity": 0.3
+        }
+        
+    def get_typography(self) -> Dict[str, str]:
+        """NN-SVG typography settings."""
+        return {
+            "font_family": "Source Sans Pro, Arial, sans-serif",
+            "font_size": "11px",
+            "font_weight": "600",
+            "text_anchor": "middle"
+        }

@@ -56,6 +56,16 @@ class DSLParser:
                     self._parse_dropout(line, diagram)
                 elif line.startswith('output'):
                     self._parse_output(line, diagram)
+                elif line.startswith('attention'):
+                    self._parse_attention(line, diagram)
+                elif line.startswith('layernorm'):
+                    diagram.layer_norm()
+                elif line.startswith('embedding'):
+                    self._parse_embedding(line, diagram)
+                elif line.startswith('pooling'):
+                    self._parse_pooling(line, diagram)
+                elif line.startswith('batchnorm'):
+                    diagram.batch_norm()
                 else:
                     raise DSLParseError(f"Unknown layer type at line {line_num}: '{line}'")
             except (ValueError, KeyError, AttributeError) as e:
@@ -204,3 +214,72 @@ class DSLParser:
                     raise ValueError(f"Invalid parameter format: '{part}'. Expected 'key=value'")
                     
         return params
+        
+    def _parse_attention(self, line: str, diagram: Diagram) -> None:
+        """Parse attention layer definition."""
+        # Example: attention heads=8 key_dim=64
+        params = self._parse_params(line)
+        
+        try:
+            heads = int(params.get('heads', 8))
+            key_dim = int(params.get('key_dim', 64))
+            
+            if heads <= 0:
+                raise ValueError("Number of attention heads must be positive")
+            if key_dim <= 0:
+                raise ValueError("Key dimension must be positive")
+                
+            diagram.attention(heads, key_dim)
+        except ValueError as e:
+            if "invalid literal for int()" in str(e):
+                raise ValueError("Invalid numeric parameter in attention layer")
+            raise
+            
+    def _parse_embedding(self, line: str, diagram: Diagram) -> None:
+        """Parse embedding layer definition."""
+        # Example: embedding vocab_size=10000 embed_dim=512
+        params = self._parse_params(line)
+        
+        if 'vocab_size' not in params:
+            raise ValueError("Embedding layer missing required 'vocab_size' parameter")
+        if 'embed_dim' not in params:
+            raise ValueError("Embedding layer missing required 'embed_dim' parameter")
+            
+        try:
+            vocab_size = int(params['vocab_size'])
+            embed_dim = int(params['embed_dim'])
+            
+            if vocab_size <= 0:
+                raise ValueError("Vocab size must be positive")
+            if embed_dim <= 0:
+                raise ValueError("Embed dim must be positive")
+                
+            diagram.embedding(vocab_size, embed_dim)
+        except ValueError as e:
+            if "invalid literal for int()" in str(e):
+                raise ValueError("Invalid numeric parameter in embedding layer")
+            raise
+            
+    def _parse_pooling(self, line: str, diagram: Diagram) -> None:
+        """Parse pooling layer definition."""
+        # Example: pooling type=max size=2 stride=2
+        params = self._parse_params(line)
+        
+        pool_type = params.get('type', 'max')
+        if pool_type not in ['max', 'avg', 'global_avg']:
+            raise ValueError(f"Invalid pooling type '{pool_type}'. Must be 'max', 'avg', or 'global_avg'")
+            
+        try:
+            pool_size = int(params.get('size', 2))
+            stride = int(params.get('stride', 2))
+            
+            if pool_size <= 0:
+                raise ValueError("Pool size must be positive")
+            if stride <= 0:
+                raise ValueError("Stride must be positive")
+                
+            diagram.pooling(pool_type, pool_size, stride)
+        except ValueError as e:
+            if "invalid literal for int()" in str(e):
+                raise ValueError("Invalid numeric parameter in pooling layer")
+            raise

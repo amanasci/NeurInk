@@ -9,9 +9,9 @@ __version__ = "0.1.0"
 __author__ = "NeurInk Contributors"
 
 from .diagram import Diagram
-from .layer import Layer, InputLayer, ConvLayer, DenseLayer, FlattenLayer, DropoutLayer, OutputLayer
+from .layer import Layer, InputLayer, ConvLayer, DenseLayer, FlattenLayer, DropoutLayer, OutputLayer, AttentionLayer, LayerNormLayer, EmbeddingLayer, PoolingLayer, BatchNormLayer
 from .renderer import SVGRenderer
-from .themes import Theme, IEEETheme, APJTheme, MinimalTheme, DarkTheme
+from .themes import Theme, IEEETheme, APJTheme, MinimalTheme, DarkTheme, NNSVGTheme
 from .parser import DSLParser, DSLParseError
 from .templates import ResNetTemplate, UNetTemplate, TransformerTemplate, MLPTemplate
 
@@ -24,12 +24,18 @@ __all__ = [
     "FlattenLayer",
     "DropoutLayer",
     "OutputLayer",
+    "AttentionLayer",
+    "LayerNormLayer", 
+    "EmbeddingLayer",
+    "PoolingLayer",
+    "BatchNormLayer",
     "SVGRenderer",
     "Theme",
     "IEEETheme",
     "APJTheme",
     "MinimalTheme",
     "DarkTheme",
+    "NNSVGTheme",
     "DSLParser",
     "DSLParseError",
     "ResNetTemplate",

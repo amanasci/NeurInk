@@ -35,15 +35,25 @@ class ResNetTemplate(NetworkTemplate):
         return (Diagram()
                 .input(input_shape)
                 .conv(64, 7, stride=2)
+                .batch_norm()
+                .pooling("max", pool_size=3, stride=2)
                 .conv(64, 3)
+                .batch_norm()
                 .conv(64, 3)
-                .conv(128, 3, stride=2) 
+                .batch_norm()
+                .conv(128, 3, stride=2)
+                .batch_norm() 
                 .conv(128, 3)
+                .batch_norm()
                 .conv(256, 3, stride=2)
+                .batch_norm()
                 .conv(256, 3)
+                .batch_norm()
                 .conv(512, 3, stride=2)
+                .batch_norm()
                 .conv(512, 3)
-                .flatten()
+                .batch_norm()
+                .pooling("global_avg")
                 .dense(512)
                 .dropout(0.5)
                 .output(num_classes))
@@ -102,15 +112,20 @@ class TransformerTemplate(NetworkTemplate):
         Returns:
             Diagram with Transformer-like architecture
         """
-        # Simplified representation - real transformers have attention layers
+        # More realistic Transformer representation
         return (Diagram()
                 .input((max_length,))
-                .dense(512, activation="relu")  # Embedding
-                .dense(512, activation="relu")  # Multi-head attention (simplified)
-                .dense(512, activation="relu")  # Feed forward
-                .dense(512, activation="relu")  # Multi-head attention (simplified)
-                .dense(512, activation="relu")  # Feed forward
-                .flatten()
+                .embedding(vocab_size, 512)
+                .layer_norm()
+                .attention(num_heads=8, key_dim=64)
+                .layer_norm()
+                .dense(2048, activation="relu")  # Feed forward
+                .dense(512, activation="relu")
+                .attention(num_heads=8, key_dim=64)
+                .layer_norm()
+                .dense(2048, activation="relu")  # Feed forward  
+                .dense(512, activation="relu")
+                .pooling("global_avg")
                 .dense(256)
                 .dropout(0.1)
                 .output(num_classes))
