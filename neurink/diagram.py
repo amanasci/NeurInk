@@ -10,7 +10,8 @@ from .layer import (
     Layer, InputLayer, ConvLayer, DenseLayer, 
     FlattenLayer, DropoutLayer, OutputLayer,
     AttentionLayer, LayerNormLayer, EmbeddingLayer,
-    PoolingLayer, BatchNormLayer
+    PoolingLayer, BatchNormLayer, SkipConnectionLayer,
+    BranchLayer, MergeLayer
 )
 from .renderer import SVGRenderer
 from .themes import Theme, IEEETheme
@@ -185,6 +186,49 @@ class Diagram:
             Self for method chaining
         """
         layer = BatchNormLayer()
+        self.layers.append(layer)
+        return self
+        
+    def branch(self, branch_name: str) -> 'Diagram':
+        """
+        Create a branch point in the diagram.
+        
+        Args:
+            branch_name: Name identifier for the branch
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = BranchLayer(branch_name)
+        self.layers.append(layer)
+        return self
+        
+    def merge(self, merge_type: str = "add", merge_with: str = None) -> 'Diagram':
+        """
+        Merge with a previously branched path.
+        
+        Args:
+            merge_type: Type of merge operation ('add', 'concat')
+            merge_with: Name of branch to merge with
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = MergeLayer(merge_type, merge_with)
+        self.layers.append(layer)
+        return self
+        
+    def skip_connection(self, connection_type: str = "add") -> 'Diagram':
+        """
+        Add a skip connection (shortcut) to the diagram.
+        
+        Args:
+            connection_type: Type of connection ('add', 'concat')
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = SkipConnectionLayer(connection_type)
         self.layers.append(layer)
         return self
         

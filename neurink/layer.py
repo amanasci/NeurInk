@@ -289,3 +289,75 @@ class BatchNormLayer(Layer):
             "type": "batchnorm",
             "display_text": "BatchNorm"
         }
+
+
+class SkipConnectionLayer(Layer):
+    """Skip connection layer for ResNet-style architectures."""
+    
+    def __init__(self, connection_type: str = "add", **kwargs):
+        """
+        Initialize a skip connection layer.
+        
+        Args:
+            connection_type: Type of connection ('add', 'concat')
+            **kwargs: Additional parameters
+        """
+        super().__init__("skip", connection_type=connection_type, **kwargs)
+        self.connection_type = connection_type
+        
+    def get_shape_info(self) -> Dict[str, Any]:
+        """Get skip connection information."""
+        return {
+            "connection_type": self.connection_type,
+            "type": "skip",
+            "display_text": f"Skip ({self.connection_type})"
+        }
+
+
+class BranchLayer(Layer):
+    """Branch layer to split processing into multiple paths."""
+    
+    def __init__(self, branch_name: str, **kwargs):
+        """
+        Initialize a branch layer.
+        
+        Args:
+            branch_name: Name identifier for the branch
+            **kwargs: Additional parameters
+        """
+        super().__init__("branch", branch_name=branch_name, **kwargs)
+        self.branch_name = branch_name
+        
+    def get_shape_info(self) -> Dict[str, Any]:
+        """Get branch information."""
+        return {
+            "branch_name": self.branch_name,
+            "type": "branch",
+            "display_text": f"Branch {self.branch_name}"
+        }
+
+
+class MergeLayer(Layer):
+    """Merge layer to combine multiple processing paths."""
+    
+    def __init__(self, merge_type: str = "add", merge_with: str = None, **kwargs):
+        """
+        Initialize a merge layer.
+        
+        Args:
+            merge_type: Type of merge operation ('add', 'concat')
+            merge_with: Name of branch to merge with
+            **kwargs: Additional parameters
+        """
+        super().__init__("merge", merge_type=merge_type, merge_with=merge_with, **kwargs)
+        self.merge_type = merge_type
+        self.merge_with = merge_with
+        
+    def get_shape_info(self) -> Dict[str, Any]:
+        """Get merge information."""
+        return {
+            "merge_type": self.merge_type,
+            "merge_with": self.merge_with,
+            "type": "merge",
+            "display_text": f"Merge ({self.merge_type})"
+        }

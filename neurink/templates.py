@@ -23,36 +23,49 @@ class ResNetTemplate(NetworkTemplate):
     @staticmethod
     def create(input_shape: tuple = (224, 224, 3), num_classes: int = 1000) -> Diagram:
         """
-        Create a simplified ResNet-style architecture.
+        Create a ResNet-style architecture with skip connections.
         
         Args:
             input_shape: Input image shape
             num_classes: Number of output classes
             
         Returns:
-            Diagram with ResNet-like architecture
+            Diagram with ResNet-like architecture including skip connections
         """
         return (Diagram()
                 .input(input_shape)
                 .conv(64, 7, stride=2)
                 .batch_norm()
                 .pooling("max", pool_size=3, stride=2)
+                # First residual block
+                .branch("skip1")
                 .conv(64, 3)
                 .batch_norm()
                 .conv(64, 3)
                 .batch_norm()
+                .merge("add", "skip1")
+                # Second residual block
+                .branch("skip2")
                 .conv(128, 3, stride=2)
-                .batch_norm() 
+                .batch_norm()
                 .conv(128, 3)
                 .batch_norm()
+                .merge("add", "skip2")
+                # Third residual block
+                .branch("skip3")
                 .conv(256, 3, stride=2)
                 .batch_norm()
                 .conv(256, 3)
                 .batch_norm()
+                .merge("add", "skip3")
+                # Fourth residual block
+                .branch("skip4")
                 .conv(512, 3, stride=2)
                 .batch_norm()
                 .conv(512, 3)
                 .batch_norm()
+                .merge("add", "skip4")
+                # Classification head
                 .pooling("global_avg")
                 .dense(512)
                 .dropout(0.5)
@@ -65,31 +78,42 @@ class UNetTemplate(NetworkTemplate):
     @staticmethod
     def create(input_shape: tuple = (256, 256, 3), num_classes: int = 1) -> Diagram:
         """
-        Create a simplified UNet architecture.
+        Create a UNet architecture with proper skip connections.
         
         Args:
             input_shape: Input image shape
             num_classes: Number of output classes/channels
             
         Returns:
-            Diagram with UNet-like architecture
+            Diagram with UNet-like architecture including skip connections
         """
-        # Note: This is a simplified representation
-        # Real UNet has skip connections which aren't fully supported yet
+        # UNet with proper encoder-decoder structure and skip connections
         return (Diagram()
                 .input(input_shape)
+                # Encoder path
                 .conv(64, 3)
                 .conv(64, 3)
-                .conv(128, 3, stride=2)
+                .branch("skip1")
+                .pooling("max", 2, 2)
                 .conv(128, 3)
-                .conv(256, 3, stride=2)
+                .conv(128, 3)
+                .branch("skip2")
+                .pooling("max", 2, 2)
                 .conv(256, 3)
-                .conv(512, 3, stride=2)
+                .conv(256, 3)
+                .branch("skip3")
+                .pooling("max", 2, 2)
                 .conv(512, 3)
+                .conv(512, 3)
+                # Decoder path with skip connections
                 .conv(256, 3)
+                .merge("concat", "skip3")
                 .conv(256, 3)
                 .conv(128, 3)
+                .merge("concat", "skip2")
                 .conv(128, 3)
+                .conv(64, 3)
+                .merge("concat", "skip1")
                 .conv(64, 3)
                 .conv(64, 3)
                 .output(num_classes, activation="sigmoid"))

@@ -9,7 +9,7 @@ __version__ = "0.1.0"
 __author__ = "NeurInk Contributors"
 
 from .diagram import Diagram
-from .layer import Layer, InputLayer, ConvLayer, DenseLayer, FlattenLayer, DropoutLayer, OutputLayer, AttentionLayer, LayerNormLayer, EmbeddingLayer, PoolingLayer, BatchNormLayer
+from .layer import Layer, InputLayer, ConvLayer, DenseLayer, FlattenLayer, DropoutLayer, OutputLayer, AttentionLayer, LayerNormLayer, EmbeddingLayer, PoolingLayer, BatchNormLayer, SkipConnectionLayer, BranchLayer, MergeLayer
 from .renderer import SVGRenderer
 from .themes import Theme, IEEETheme, APJTheme, MinimalTheme, DarkTheme, NNSVGTheme
 from .parser import DSLParser, DSLParseError
@@ -29,6 +29,9 @@ __all__ = [
     "EmbeddingLayer",
     "PoolingLayer",
     "BatchNormLayer",
+    "SkipConnectionLayer",
+    "BranchLayer", 
+    "MergeLayer",
     "SVGRenderer",
     "Theme",
     "IEEETheme",

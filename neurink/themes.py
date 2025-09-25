@@ -208,6 +208,9 @@ class NNSVGTheme(Theme):
             "embedding_fill": "#42a5f5",
             "pooling_fill": "#26a69a",
             "batchnorm_fill": "#78909c",
+            "skip_fill": "#9c27b0",
+            "branch_fill": "#ff5722",
+            "merge_fill": "#4caf50",
             "connection": "#6c757d",
             "text": "#212529",
             "shadow": "#00000020"

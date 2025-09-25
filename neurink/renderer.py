@@ -48,7 +48,7 @@ class SVGRenderer:
         
         # Render connections between layers
         if len(layers) > 1:
-            svg_parts.append(self._render_connections(positions, colors, styles))
+            svg_parts.append(self._render_connections(layers, positions, colors, styles))
         
         # Render layers
         for i, layer in enumerate(layers):
@@ -92,7 +92,7 @@ class SVGRenderer:
         if is_nnsvg:
             # Add gradients for 3D effect
             gradient_defs = []
-            layer_types = ['input', 'conv', 'dense', 'output', 'flatten', 'dropout', 'attention', 'layernorm', 'embedding', 'pooling', 'batchnorm']
+            layer_types = ['input', 'conv', 'dense', 'output', 'flatten', 'dropout', 'attention', 'layernorm', 'embedding', 'pooling', 'batchnorm', 'skip', 'branch', 'merge']
             
             for layer_type in layer_types:
                 base_color = colors.get(f'{layer_type}_fill', colors['layer_fill'])
@@ -114,27 +114,69 @@ class SVGRenderer:
         return defs
         
     def _calculate_positions(self, layers: List[Layer], styles: Dict[str, Any]) -> List[Tuple[int, int]]:
-        """Calculate x,y positions for each layer."""
+        """Calculate x,y positions for each layer with improved skip connection layout."""
         positions = []
+        branch_offsets = {}  # Track branch vertical offsets
+        merge_pending = {}   # Track pending merges
         
         if self.layout == "horizontal":
-            # Ensure first layer starts at padding + half layer width to avoid negative coordinates
             x_start = styles["padding"] + styles["layer_width"] // 2
             y_center = styles["padding"] + styles["layer_height"] // 2
             
-            for i in range(len(layers)):
+            current_branch_offset = 0
+            
+            for i, layer in enumerate(layers):
                 x = x_start + i * styles["layer_spacing_x"]
-                y = y_center
+                
+                if layer.layer_type == "branch":
+                    # Branch creates a vertical offset
+                    branch_name = layer.branch_name
+                    current_branch_offset += styles["layer_spacing_y"] // 2
+                    branch_offsets[branch_name] = current_branch_offset
+                    y = y_center + current_branch_offset
+                elif layer.layer_type == "merge":
+                    # Merge returns to main path or specific branch
+                    merge_with = layer.merge_with
+                    if merge_with and merge_with in branch_offsets:
+                        y = y_center + branch_offsets[merge_with]
+                        current_branch_offset = branch_offsets[merge_with]
+                    else:
+                        y = y_center
+                        current_branch_offset = 0
+                else:
+                    # Regular layer follows current branch offset
+                    y = y_center + current_branch_offset
+                    
                 positions.append((x, y))
                 
         elif self.layout == "vertical":
             x_center = styles["padding"] + styles["layer_width"] // 2
-            # Ensure first layer starts at padding + half layer height to avoid negative coordinates
             y_start = styles["padding"] + styles["layer_height"] // 2
             
-            for i in range(len(layers)):
-                x = x_center
+            current_branch_offset = 0
+            
+            for i, layer in enumerate(layers):
                 y = y_start + i * styles["layer_spacing_y"]
+                
+                if layer.layer_type == "branch":
+                    # Branch creates a horizontal offset
+                    branch_name = layer.branch_name
+                    current_branch_offset += styles["layer_spacing_x"] // 2
+                    branch_offsets[branch_name] = current_branch_offset
+                    x = x_center + current_branch_offset
+                elif layer.layer_type == "merge":
+                    # Merge returns to main path
+                    merge_with = layer.merge_with
+                    if merge_with and merge_with in branch_offsets:
+                        x = x_center + branch_offsets[merge_with]
+                        current_branch_offset = branch_offsets[merge_with]
+                    else:
+                        x = x_center
+                        current_branch_offset = 0
+                else:
+                    # Regular layer follows current branch offset
+                    x = x_center + current_branch_offset
+                    
                 positions.append((x, y))
                 
         return positions
@@ -152,32 +194,88 @@ class SVGRenderer:
         
         return width, height
         
-    def _render_connections(self, positions: List[Tuple[int, int]], 
+    def _render_connections(self, layers: List[Layer], positions: List[Tuple[int, int]], 
                           colors: Dict[str, str], styles: Dict[str, Any]) -> str:
-        """Render connections between layers."""
+        """Render connections between layers with support for skip connections."""
         connections = []
+        branch_positions = {}  # Store positions of branch points
         
         for i in range(len(positions) - 1):
+            layer = layers[i]
+            next_layer = layers[i + 1]
             x1, y1 = positions[i]
             x2, y2 = positions[i + 1]
             
-            if self.layout == "horizontal":
-                # Connect from right edge of first layer to left edge of second layer
-                start_x = x1 + styles["layer_width"] // 2
-                start_y = y1
-                end_x = x2 - styles["layer_width"] // 2
-                end_y = y2
-            else:  # vertical
-                # Connect from bottom edge of first layer to top edge of second layer
-                start_x = x1
-                start_y = y1 + styles["layer_height"] // 2
-                end_x = x2
-                end_y = y2 - styles["layer_height"] // 2
+            # Store branch positions for later skip connections
+            if layer.layer_type == "branch":
+                branch_positions[layer.branch_name] = (x1, y1)
             
-            connections.append(f'''  <line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}"
+            # Handle different connection types
+            if next_layer.layer_type == "merge" and next_layer.merge_with:
+                # Don't draw regular connection if this is a merge point
+                continue
+            elif layer.layer_type == "branch":
+                # Branch creates two connections - one continues, one starts skip
+                if self.layout == "horizontal":
+                    start_x = x1 + styles["layer_width"] // 2
+                    start_y = y1
+                    end_x = x2 - styles["layer_width"] // 2
+                    end_y = y2
+                else:
+                    start_x = x1
+                    start_y = y1 + styles["layer_height"] // 2
+                    end_x = x2
+                    end_y = y2 - styles["layer_height"] // 2
+                    
+                connections.append(f'''  <line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}"
         stroke="{colors['connection']}" stroke-width="{styles['connection_width']}"
         marker-end="url(#arrowhead)"/>''')
-            
+            else:
+                # Regular connection
+                if self.layout == "horizontal":
+                    start_x = x1 + styles["layer_width"] // 2
+                    start_y = y1
+                    end_x = x2 - styles["layer_width"] // 2
+                    end_y = y2
+                else:
+                    start_x = x1
+                    start_y = y1 + styles["layer_height"] // 2
+                    end_x = x2
+                    end_y = y2 - styles["layer_height"] // 2
+                    
+                connections.append(f'''  <line x1="{start_x}" y1="{start_y}" x2="{end_x}" y2="{end_y}"
+        stroke="{colors['connection']}" stroke-width="{styles['connection_width']}"
+        marker-end="url(#arrowhead)"/>''')
+        
+        # Add skip connections for merge layers
+        for i, layer in enumerate(layers):
+            if layer.layer_type == "merge" and layer.merge_with and layer.merge_with in branch_positions:
+                branch_x, branch_y = branch_positions[layer.merge_with]
+                merge_x, merge_y = positions[i]
+                
+                # Draw skip connection with different styling
+                if self.layout == "horizontal":
+                    skip_start_x = branch_x + styles["layer_width"] // 2
+                    skip_start_y = branch_y
+                    skip_end_x = merge_x - styles["layer_width"] // 2
+                    skip_end_y = merge_y
+                else:
+                    skip_start_x = branch_x
+                    skip_start_y = branch_y + styles["layer_height"] // 2
+                    skip_end_x = merge_x
+                    skip_end_y = merge_y - styles["layer_height"] // 2
+                
+                # Create curved skip connection
+                if abs(skip_start_y - skip_end_y) > 10:  # Only curve if there's vertical difference
+                    mid_x = (skip_start_x + skip_end_x) / 2
+                    connections.append(f'''  <path d="M {skip_start_x},{skip_start_y} Q {mid_x},{skip_start_y} {skip_end_x},{skip_end_y}"
+        stroke="{colors['connection']}" stroke-width="{styles['connection_width']}" 
+        fill="none" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>''')
+                else:
+                    connections.append(f'''  <line x1="{skip_start_x}" y1="{skip_start_y}" x2="{skip_end_x}" y2="{skip_end_y}"
+        stroke="{colors['connection']}" stroke-width="{styles['connection_width']}"
+        stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>''')
+        
         return "\n".join(connections)
         
     def _render_layer(self, layer: Layer, x: int, y: int, 
