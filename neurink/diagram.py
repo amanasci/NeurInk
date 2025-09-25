@@ -14,6 +14,7 @@ from .layer import (
     BranchLayer, MergeLayer
 )
 from .renderer import SVGRenderer
+from .professional_renderer import ProfessionalSVGRenderer
 from .themes import Theme, IEEETheme
 
 
@@ -238,17 +239,23 @@ class Diagram:
         
         Args:
             filename: Output filename for the SVG file
-            theme: Theme name ("ieee", "apj", "minimal", "dark") or Theme object
+            theme: Theme name ("ieee", "apj", "minimal", "dark", "nnsvg") or Theme object
             
         Returns:
             Path to the generated SVG file
         """
         if isinstance(theme, str):
             theme_obj = self._get_theme_by_name(theme)
+            # Use professional renderer for nnsvg theme
+            if theme == "nnsvg":
+                renderer = ProfessionalSVGRenderer()
+            else:
+                renderer = self._renderer
         else:
             theme_obj = theme
+            renderer = self._renderer
             
-        svg_content = self._renderer.render(self.layers, theme_obj)
+        svg_content = renderer.render(self.layers, theme_obj)
         
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(svg_content)
