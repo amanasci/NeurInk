@@ -128,14 +128,66 @@ Main class for building neural network diagrams.
 **Methods:**
 - `input(shape, name=None)` - Add input layer
 - `conv(filters, kernel_size, stride=1, activation="relu", name=None)` - Add convolutional layer
+- `conv_transpose(filters, kernel_size, stride=1, activation="relu", name=None)` - Add transposed convolution layer
 - `dense(units, activation="relu", name=None)` - Add dense layer
 - `flatten(name=None)` - Add flatten layer
 - `dropout(rate, name=None)` - Add dropout layer  
 - `output(units, activation="softmax", name=None)` - Add output layer
+- `maxpool(pool_size=2, stride=None, name=None)` - Add max pooling layer
+- `upsample(size=2, method="nearest", name=None)` - Add upsampling layer
+- `batch_norm(name=None)` - Add batch normalization layer
+- `layer_norm(name=None)` - Add layer normalization layer
+- `multi_head_attention(num_heads, key_dim, name=None)` - Add multi-head attention layer
+- `embedding(vocab_size, embed_dim, name=None)` - Add embedding layer
+- `positional_encoding(max_len, embed_dim, name=None)` - Add positional encoding layer
+- `reshape(target_shape, name=None)` - Add reshape layer
+- `global_avg_pool(name=None)` - Add global average pooling layer
+- `concatenate(axis=-1, name=None)` - Add concatenate layer
+- `add(name=None)` - Add element-wise addition layer
 - `connect(source_layer_name, dest_layer_name)` - Create connection between layers (v2.0)
 - `render(filename, theme="ieee")` - Render to SVG file
 - `from_string(dsl_text)` - Create from DSL (class method)
 - `get_layer_names()` - Get list of layer names (v2.0)
+
+### Layer Types
+
+NeurInk supports a comprehensive set of layer types for modern deep learning architectures:
+
+**Basic Layers:**
+- `input` - Input/data layers
+- `conv` - Convolutional layers for feature extraction
+- `dense` - Fully connected layers
+- `flatten` - Reshape multi-dimensional data to 1D
+- `dropout` - Regularization layers
+- `output` - Final output layers
+
+**Pooling & Sampling:**
+- `maxpool` - Max pooling for downsampling
+- `upsample` - Upsampling for increasing resolution
+- `conv_transpose` - Transposed convolution (deconvolution)
+- `global_avg_pool` - Global average pooling
+
+**Normalization:**
+- `batch_norm` - Batch normalization for training stability
+- `layer_norm` - Layer normalization for transformers
+
+**Transformer Components:**
+- `multi_head_attention` - Multi-head attention mechanism
+- `embedding` - Token embedding layers
+- `positional_encoding` - Positional encoding for sequences
+
+**Utility Layers:**
+- `reshape` - Reshape tensor dimensions
+- `concatenate` - Merge multiple inputs
+- `add` - Element-wise addition for residual connections
+
+### Architecture Support
+
+These layers enable you to create diagrams for:
+- **Computer Vision**: CNNs, ResNet, U-Net, Vision Transformers
+- **Natural Language Processing**: Transformers, BERT, GPT architectures  
+- **Generative Models**: GANs, VAEs, Diffusion models
+- **Custom Research**: Any complex topology with skip connections
 
 ### Themes
 
@@ -246,6 +298,13 @@ If you use NeurInk in your research, please cite:
 - **Backward Compatible**: All existing code continues to work
 - **Better Visualization**: HTML-like labels with detailed layer information
 - **Complex Architectures**: Support for ResNet, U-Net, and custom topologies
+- **Expanded Layer Library**: 12 new layer types for modern architectures:
+  - Pooling: `maxpool`, `upsample`, `conv_transpose`, `global_avg_pool`
+  - Normalization: `batch_norm`, `layer_norm`
+  - Transformers: `multi_head_attention`, `embedding`, `positional_encoding`
+  - Utilities: `reshape`, `concatenate`, `add` (for residual connections)
+- **Enhanced Examples**: Added U-Net and Transformer examples in `example_v2.py`
+- **Complete Documentation**: Updated DSL syntax guide with all new layer types
 
 ### v0.1.0 (Initial Release)
 - Python API with method chaining

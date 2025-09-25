@@ -145,6 +145,192 @@ output units=1 activation=sigmoid    # Binary classification
 output units=100 activation=linear   # Regression
 ```
 
+### MaxPool Layer
+
+Max pooling layer for downsampling spatial dimensions.
+
+```
+maxpool [pool_size=N] [stride=N]
+```
+
+**Parameters:**
+- `pool_size` (optional): Size of pooling window, default=2
+- `stride` (optional): Stride of pooling operation, default=same as pool_size
+
+**Examples:**
+```
+maxpool                    # 2x2 pooling
+maxpool pool_size=3        # 3x3 pooling
+maxpool pool_size=2 stride=1  # 2x2 pooling with stride 1
+```
+
+### UpSample Layer
+
+Upsampling layer for increasing spatial resolution.
+
+```
+upsample [size=N] [method=METHOD]
+```
+
+**Parameters:**
+- `size` (optional): Upsampling factor, default=2
+- `method` (optional): Upsampling method ('nearest', 'bilinear'), default="nearest"
+
+**Examples:**
+```
+upsample                   # 2x upsampling with nearest neighbor
+upsample size=4            # 4x upsampling
+upsample size=2 method=bilinear  # Bilinear upsampling
+```
+
+### ConvTranspose Layer
+
+Transposed convolution (deconvolution) layer.
+
+```
+conv_transpose filters=N kernel=K [stride=S] [activation=ACT]
+```
+
+**Parameters:**
+- `filters` (required): Number of output filters
+- `kernel` (required): Size of convolution kernel
+- `stride` (optional): Stride of convolution, default=1
+- `activation` (optional): Activation function, default="relu"
+
+**Examples:**
+```
+conv_transpose filters=64 kernel=2 stride=2    # Upsampling convolution
+conv_transpose filters=32 kernel=3             # Regular transposed conv
+```
+
+### Batch Normalization Layer
+
+Batch normalization for training stability.
+
+```
+batch_norm
+```
+
+No parameters required.
+
+### Layer Normalization Layer
+
+Layer normalization for transformer architectures.
+
+```
+layer_norm
+```
+
+No parameters required.
+
+### Multi-Head Attention Layer
+
+Multi-head attention mechanism for transformers.
+
+```
+multi_head_attention num_heads=N key_dim=D
+```
+
+**Parameters:**
+- `num_heads` (required): Number of attention heads
+- `key_dim` (required): Dimension of attention keys/queries
+
+**Examples:**
+```
+multi_head_attention num_heads=8 key_dim=64    # Standard transformer attention
+multi_head_attention num_heads=12 key_dim=128  # Larger attention
+```
+
+### Embedding Layer
+
+Token embedding layer for transformers.
+
+```
+embedding vocab_size=V embed_dim=D
+```
+
+**Parameters:**
+- `vocab_size` (required): Size of vocabulary
+- `embed_dim` (required): Embedding dimension
+
+**Examples:**
+```
+embedding vocab_size=10000 embed_dim=512   # Word embeddings
+embedding vocab_size=1000 embed_dim=256    # Smaller vocabulary
+```
+
+### Positional Encoding Layer
+
+Positional encoding for transformer inputs.
+
+```
+positional_encoding max_len=L embed_dim=D
+```
+
+**Parameters:**
+- `max_len` (required): Maximum sequence length
+- `embed_dim` (required): Embedding dimension
+
+**Examples:**
+```
+positional_encoding max_len=512 embed_dim=512  # Standard transformer
+positional_encoding max_len=1024 embed_dim=768 # Longer sequences
+```
+
+### Reshape Layer
+
+Reshape tensor dimensions.
+
+```
+reshape shape=SHAPE
+```
+
+**Parameters:**
+- `shape` (required): Target shape (e.g., "64x64" or "128x8x8")
+
+**Examples:**
+```
+reshape shape=64x64        # Reshape to 2D
+reshape shape=128x8x8      # Reshape to 3D
+```
+
+### Global Average Pooling Layer
+
+Global average pooling across spatial dimensions.
+
+```
+global_avg_pool
+```
+
+No parameters required.
+
+### Concatenate Layer
+
+Concatenate multiple inputs along specified axis.
+
+```
+concatenate [axis=N]
+```
+
+**Parameters:**
+- `axis` (optional): Concatenation axis, default=-1
+
+**Examples:**
+```
+concatenate            # Concatenate on last axis
+concatenate axis=1     # Concatenate on axis 1
+```
+
+### Add Layer
+
+Element-wise addition for residual connections.
+
+```
+add
+```
+
+No parameters required.
+
 ### Connections (New in v2.0)
 
 Create explicit connections between layers to build complex architectures.

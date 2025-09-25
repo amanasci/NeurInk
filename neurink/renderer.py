@@ -292,7 +292,7 @@ class GraphvizRenderer:
         # Add layer-specific information
         if layer.layer_type == 'input':
             rows.append(f'<TR><TD>Shape:</TD><TD>{shape_info.get("shape", "")}</TD></TR>')
-        elif layer.layer_type == 'conv':
+        elif layer.layer_type in ['conv', 'conv_transpose']:
             rows.append(f'<TR><TD>Filters:</TD><TD>{shape_info.get("filters", "")}</TD></TR>')
             rows.append(f'<TR><TD>Kernel:</TD><TD>{shape_info.get("kernel_size", "")}</TD></TR>')
             if shape_info.get("stride", 1) != 1:
@@ -305,6 +305,32 @@ class GraphvizRenderer:
             rows.append(f'<TR><TD>Rate:</TD><TD>{shape_info.get("rate", "")}</TD></TR>')
         elif layer.layer_type == 'flatten':
             rows.append(f'<TR><TD COLSPAN="2">Flattens input</TD></TR>')
+        elif layer.layer_type == 'maxpool':
+            rows.append(f'<TR><TD>Pool Size:</TD><TD>{shape_info.get("pool_size", "")}</TD></TR>')
+            if shape_info.get("stride") != shape_info.get("pool_size"):
+                rows.append(f'<TR><TD>Stride:</TD><TD>{shape_info.get("stride", "")}</TD></TR>')
+        elif layer.layer_type == 'upsample':
+            rows.append(f'<TR><TD>Size:</TD><TD>{shape_info.get("size", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Method:</TD><TD>{shape_info.get("method", "")}</TD></TR>')
+        elif layer.layer_type in ['batch_norm', 'layer_norm']:
+            rows.append(f'<TR><TD COLSPAN="2">Normalizes activations</TD></TR>')
+        elif layer.layer_type == 'multi_head_attention':
+            rows.append(f'<TR><TD>Heads:</TD><TD>{shape_info.get("num_heads", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Key Dim:</TD><TD>{shape_info.get("key_dim", "")}</TD></TR>')
+        elif layer.layer_type == 'embedding':
+            rows.append(f'<TR><TD>Vocab Size:</TD><TD>{shape_info.get("vocab_size", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Embed Dim:</TD><TD>{shape_info.get("embed_dim", "")}</TD></TR>')
+        elif layer.layer_type == 'positional_encoding':
+            rows.append(f'<TR><TD>Max Len:</TD><TD>{shape_info.get("max_len", "")}</TD></TR>')
+            rows.append(f'<TR><TD>Embed Dim:</TD><TD>{shape_info.get("embed_dim", "")}</TD></TR>')
+        elif layer.layer_type == 'reshape':
+            rows.append(f'<TR><TD>Shape:</TD><TD>{shape_info.get("target_shape", "")}</TD></TR>')
+        elif layer.layer_type == 'global_avg_pool':
+            rows.append(f'<TR><TD COLSPAN="2">Global average pooling</TD></TR>')
+        elif layer.layer_type == 'concatenate':
+            rows.append(f'<TR><TD>Axis:</TD><TD>{shape_info.get("axis", "")}</TD></TR>')
+        elif layer.layer_type == 'add':
+            rows.append(f'<TR><TD COLSPAN="2">Element-wise addition</TD></TR>')
         
         # Add layer name if it's not auto-generated
         if hasattr(layer, 'name') and not layer.name.startswith(f"{layer.layer_type}_"):
@@ -318,9 +344,21 @@ class GraphvizRenderer:
         layer_colors = {
             'input': colors.get('input_fill', colors.get('layer_fill', '#f0f0f0')),
             'conv': colors.get('conv_fill', colors.get('layer_fill', '#f0f0f0')),
+            'conv_transpose': colors.get('conv_fill', colors.get('layer_fill', '#f0f0f0')),
             'dense': colors.get('dense_fill', colors.get('layer_fill', '#f0f0f0')),
             'flatten': colors.get('layer_fill', '#f0f0f0'),
             'dropout': colors.get('layer_fill', '#f0f0f0'),
-            'output': colors.get('output_fill', colors.get('layer_fill', '#f0f0f0'))
+            'output': colors.get('output_fill', colors.get('layer_fill', '#f0f0f0')),
+            'maxpool': colors.get('layer_fill', '#e3f2fd'),
+            'upsample': colors.get('layer_fill', '#f3e5f5'),
+            'batch_norm': colors.get('layer_fill', '#fff3e0'),
+            'layer_norm': colors.get('layer_fill', '#fff3e0'),
+            'multi_head_attention': colors.get('layer_fill', '#e8f5e8'),
+            'embedding': colors.get('layer_fill', '#fce4ec'),
+            'positional_encoding': colors.get('layer_fill', '#fce4ec'),
+            'reshape': colors.get('layer_fill', '#f9fbe7'),
+            'global_avg_pool': colors.get('layer_fill', '#e3f2fd'),
+            'concatenate': colors.get('layer_fill', '#ede7f6'),
+            'add': colors.get('layer_fill', '#ede7f6')
         }
         return layer_colors.get(layer.layer_type, colors.get('layer_fill', '#f0f0f0'))

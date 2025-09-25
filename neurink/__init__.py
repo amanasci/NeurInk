@@ -9,7 +9,12 @@ __version__ = "2.0.0"
 __author__ = "NeurInk Contributors"
 
 from .diagram import Diagram
-from .layer import Layer, InputLayer, ConvLayer, DenseLayer, FlattenLayer, DropoutLayer, OutputLayer
+from .layer import (
+    Layer, InputLayer, ConvLayer, DenseLayer, FlattenLayer, DropoutLayer, OutputLayer,
+    MaxPoolLayer, UpSampleLayer, ConvTransposeLayer, BatchNormLayer, LayerNormLayer,
+    MultiHeadAttentionLayer, EmbeddingLayer, PositionalEncodingLayer, ReshapeLayer,
+    GlobalAvgPoolLayer, ConcatenateLayer, AddLayer
+)
 from .renderer import SVGRenderer, GraphvizRenderer
 from .themes import Theme, IEEETheme, APJTheme, MinimalTheme, DarkTheme
 from .parser import DSLParser, DSLParseError
@@ -24,6 +29,18 @@ __all__ = [
     "FlattenLayer",
     "DropoutLayer",
     "OutputLayer",
+    "MaxPoolLayer",
+    "UpSampleLayer",
+    "ConvTransposeLayer",
+    "BatchNormLayer",
+    "LayerNormLayer",
+    "MultiHeadAttentionLayer",
+    "EmbeddingLayer",
+    "PositionalEncodingLayer",
+    "ReshapeLayer",
+    "GlobalAvgPoolLayer",
+    "ConcatenateLayer",
+    "AddLayer",
     "SVGRenderer",
     "GraphvizRenderer",
     "Theme",

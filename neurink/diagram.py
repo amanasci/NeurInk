@@ -9,7 +9,11 @@ from typing import List, Union, Tuple, Optional, Dict, Any
 import networkx as nx
 from .layer import (
     Layer, InputLayer, ConvLayer, DenseLayer, 
-    FlattenLayer, DropoutLayer, OutputLayer
+    FlattenLayer, DropoutLayer, OutputLayer,
+    MaxPoolLayer, UpSampleLayer, ConvTransposeLayer,
+    BatchNormLayer, LayerNormLayer, MultiHeadAttentionLayer,
+    EmbeddingLayer, PositionalEncodingLayer, ReshapeLayer,
+    GlobalAvgPoolLayer, ConcatenateLayer, AddLayer
 )
 from .renderer import GraphvizRenderer
 from .themes import Theme, IEEETheme
@@ -170,6 +174,193 @@ class Diagram:
             raise ValueError(f"Destination layer '{dest_layer_name}' does not exist")
         
         self.graph.add_edge(source_layer_name, dest_layer_name)
+        return self
+        
+    def maxpool(self, pool_size: Union[int, Tuple[int, int]] = 2, 
+                stride: Optional[Union[int, Tuple[int, int]]] = None, name: Optional[str] = None) -> 'Diagram':
+        """
+        Add a max pooling layer to the diagram.
+        
+        Args:
+            pool_size: Size of pooling window (default: 2)
+            stride: Stride of pooling operation (default: same as pool_size)
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = MaxPoolLayer(pool_size, stride, name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def upsample(self, size: Union[int, Tuple[int, int]] = 2, method: str = "nearest", 
+                 name: Optional[str] = None) -> 'Diagram':
+        """
+        Add an upsampling layer to the diagram.
+        
+        Args:
+            size: Upsampling factor (default: 2)
+            method: Upsampling method ('nearest', 'bilinear') (default: "nearest")
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = UpSampleLayer(size, method, name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def conv_transpose(self, filters: int, kernel_size: Union[int, Tuple[int, int]], 
+                       stride: int = 1, activation: str = "relu", name: Optional[str] = None) -> 'Diagram':
+        """
+        Add a transposed convolution layer to the diagram.
+        
+        Args:
+            filters: Number of output filters
+            kernel_size: Size of convolution kernel
+            stride: Stride of convolution (default: 1)
+            activation: Activation function name (default: "relu")
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = ConvTransposeLayer(filters, kernel_size, stride, activation, name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def batch_norm(self, name: Optional[str] = None) -> 'Diagram':
+        """
+        Add a batch normalization layer to the diagram.
+        
+        Args:
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = BatchNormLayer(name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def layer_norm(self, name: Optional[str] = None) -> 'Diagram':
+        """
+        Add a layer normalization layer to the diagram.
+        
+        Args:
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = LayerNormLayer(name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def multi_head_attention(self, num_heads: int, key_dim: int, name: Optional[str] = None) -> 'Diagram':
+        """
+        Add a multi-head attention layer to the diagram.
+        
+        Args:
+            num_heads: Number of attention heads
+            key_dim: Dimension of attention keys/queries
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = MultiHeadAttentionLayer(num_heads, key_dim, name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def embedding(self, vocab_size: int, embed_dim: int, name: Optional[str] = None) -> 'Diagram':
+        """
+        Add an embedding layer to the diagram.
+        
+        Args:
+            vocab_size: Size of vocabulary
+            embed_dim: Embedding dimension
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = EmbeddingLayer(vocab_size, embed_dim, name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def positional_encoding(self, max_len: int, embed_dim: int, name: Optional[str] = None) -> 'Diagram':
+        """
+        Add a positional encoding layer to the diagram.
+        
+        Args:
+            max_len: Maximum sequence length
+            embed_dim: Embedding dimension
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = PositionalEncodingLayer(max_len, embed_dim, name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def reshape(self, target_shape: Tuple[int, ...], name: Optional[str] = None) -> 'Diagram':
+        """
+        Add a reshape layer to the diagram.
+        
+        Args:
+            target_shape: Target shape
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = ReshapeLayer(target_shape, name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def global_avg_pool(self, name: Optional[str] = None) -> 'Diagram':
+        """
+        Add a global average pooling layer to the diagram.
+        
+        Args:
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = GlobalAvgPoolLayer(name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def concatenate(self, axis: int = -1, name: Optional[str] = None) -> 'Diagram':
+        """
+        Add a concatenate layer to the diagram.
+        
+        Args:
+            axis: Axis along which to concatenate (default: -1)
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = ConcatenateLayer(axis, name=name)
+        self._add_layer_to_graph(layer, name)
+        return self
+        
+    def add(self, name: Optional[str] = None) -> 'Diagram':
+        """
+        Add an element-wise addition layer to the diagram.
+        
+        Args:
+            name: Optional name for the layer
+            
+        Returns:
+            Self for method chaining
+        """
+        layer = AddLayer(name=name)
+        self._add_layer_to_graph(layer, name)
         return self
         
     def render(self, filename: str, theme: Union[str, Theme] = "ieee") -> str:
