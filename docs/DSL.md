@@ -2,13 +2,37 @@
 
 The NeurInk Domain-Specific Language (DSL) provides a simple, readable way to define neural network architectures. This document covers the complete DSL syntax, examples, and best practices.
 
+**New in v2.0:** Support for named layers and explicit connections for complex architectures with skip connections and branching.
+
 ## Basic Syntax
 
 The DSL uses a simple line-based format where each line defines a layer:
 
 ```
-layer_type parameter1=value1 parameter2=value2
+layer_type parameter1=value1 parameter2=value2 [name=layer_name]
 ```
+
+### New in v2.0: Named Layers
+
+All layers can now be named for explicit connections:
+
+```
+input size=224x224x3 name=input1
+conv filters=64 kernel=3 name=conv_block1
+dense units=128 name=classifier
+```
+
+If no name is provided, one will be automatically generated (e.g., `conv_1`, `dense_2`).
+
+### New in v2.0: Connections
+
+Create explicit connections between layers to build complex architectures:
+
+```
+connect from=layer1 to=layer2
+```
+
+This enables skip connections, residual blocks, and branching architectures.
 
 ### Comments and Whitespace
 
@@ -121,7 +145,106 @@ output units=1 activation=sigmoid    # Binary classification
 output units=100 activation=linear   # Regression
 ```
 
+### Connections (New in v2.0)
+
+Create explicit connections between layers to build complex architectures.
+
+```
+connect from=SOURCE_LAYER to=TARGET_LAYER
+```
+
+**Parameters:**
+- `from` (required): Name of the source layer
+- `to` (required): Name of the target layer
+
+**Examples:**
+```
+# Skip connection
+connect from=conv1 to=conv3
+
+# Residual connection
+connect from=input to=output_block
+
+# Multi-input fusion
+connect from=branch1 to=fusion_layer
+connect from=branch2 to=fusion_layer
+```
+
+**Note:** Connections create additional edges in the network graph. The normal sequential flow is preserved automatically.
+
 ## Complete Examples
+
+## Advanced Examples (v2.0)
+
+### ResNet-style Architecture with Skip Connections
+
+```
+input size=224x224x3 name=input
+conv filters=64 kernel=7 stride=2 name=conv1
+
+# First residual block
+conv filters=64 kernel=1 activation=relu name=conv2_1x1
+conv filters=64 kernel=3 activation=relu name=conv2_3x3  
+conv filters=256 kernel=1 activation=linear name=conv2_out
+connect from=conv1 to=conv2_out
+
+# Second residual block
+conv filters=64 kernel=1 activation=relu name=conv3_1x1
+conv filters=64 kernel=3 activation=relu name=conv3_3x3
+conv filters=256 kernel=1 activation=linear name=conv3_out
+connect from=conv2_out to=conv3_out
+
+flatten name=avgpool
+dense units=512 name=fc
+output units=1000 name=classifier
+```
+
+### U-Net Style Architecture with Skip Connections
+
+```
+input size=256x256x3 name=input
+
+# Encoder
+conv filters=64 kernel=3 name=conv1_1
+conv filters=64 kernel=3 name=conv1_2
+conv filters=128 kernel=3 stride=2 name=conv2_1
+conv filters=128 kernel=3 name=conv2_2
+conv filters=256 kernel=3 stride=2 name=conv3_1
+conv filters=256 kernel=3 name=conv3_2
+
+# Decoder with skip connections
+conv filters=128 kernel=3 name=up_conv2
+connect from=conv2_2 to=up_conv2
+conv filters=64 kernel=3 name=up_conv1  
+connect from=conv1_2 to=up_conv1
+conv filters=3 kernel=1 name=output_conv
+```
+
+### Multi-Input Network
+
+```
+input size=224x224x3 name=image_input
+input size=100 name=metadata_input
+
+# Image processing branch
+conv filters=32 kernel=3 name=img_conv1
+conv filters=64 kernel=3 name=img_conv2
+flatten name=img_flatten
+dense units=256 name=img_features
+
+# Metadata processing branch  
+dense units=128 name=meta_dense1
+dense units=256 name=meta_features
+
+# Combine branches
+dense units=512 name=combined
+connect from=img_features to=combined
+connect from=meta_features to=combined
+
+output units=10 name=prediction
+```
+
+## Basic Examples
 
 ### Image Classification CNN
 
