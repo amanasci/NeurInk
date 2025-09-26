@@ -136,3 +136,100 @@ def darken_color(hex_color: str, factor: float = 0.8) -> str:
     g = int(g * factor)
     b = int(b * factor)
     return rgb_to_hex(r, g, b)
+
+
+def process_latex_string(text: str) -> str:
+    """
+    Process a string containing LaTeX mathematical expressions.
+    
+    Converts simple LaTeX expressions to Unicode equivalents for better display.
+    More complex expressions are left as-is for potential future LaTeX rendering.
+    
+    Args:
+        text: String potentially containing LaTeX expressions
+        
+    Returns:
+        Processed string with Unicode replacements where possible
+    """
+    import re
+    
+    # Basic LaTeX to Unicode mappings
+    latex_symbols = {
+        r'\\alpha': 'α',
+        r'\\beta': 'β',
+        r'\\gamma': 'γ',
+        r'\\delta': 'δ',
+        r'\\epsilon': 'ε',
+        r'\\theta': 'θ',
+        r'\\lambda': 'λ',
+        r'\\mu': 'μ',
+        r'\\pi': 'π',
+        r'\\sigma': 'σ',
+        r'\\tau': 'τ',
+        r'\\phi': 'φ',
+        r'\\psi': 'ψ',
+        r'\\omega': 'ω',
+        r'\\Gamma': 'Γ',
+        r'\\Delta': 'Δ',
+        r'\\Theta': 'Θ',
+        r'\\Lambda': 'Λ',
+        r'\\Pi': 'Π',
+        r'\\Sigma': 'Σ',
+        r'\\Phi': 'Φ',
+        r'\\Psi': 'Ψ',
+        r'\\Omega': 'Ω',
+        r'\\rightarrow': '→',
+        r'\\leftarrow': '←',
+        r'\\Rightarrow': '⇒',
+        r'\\Leftarrow': '⇐',
+        r'\\infty': '∞',
+        r'\\partial': '∂',
+        r'\\nabla': '∇',
+        r'\\sum': '∑',
+        r'\\prod': '∏',
+        r'\\int': '∫',
+        r'\\pm': '±',
+        r'\\leq': '≤',
+        r'\\geq': '≥',
+        r'\\neq': '≠',
+        r'\\approx': '≈',
+    }
+    
+    # Replace basic LaTeX symbols first
+    result = text
+    for latex, unicode_char in latex_symbols.items():
+        result = re.sub(latex + r'\b', unicode_char, result)
+    
+    # Handle simple subscripts and superscripts
+    # Convert _n to subscript n, ^n to superscript n
+    subscript_map = str.maketrans('0123456789+-=()abcdefghijklmnopqrstuvwxyz',
+                                  '₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐᵦᵧₐₑfgₕᵢⱼₖₗₘₙₒₚqᵣₛₜᵤᵥwₓᵧz')
+    superscript_map = str.maketrans('0123456789+-=()abcdefghijklmnopqrstuvwxyz',
+                                    '⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖqʳˢᵗᵘᵛʷˣʸᶻ')
+    
+    # Simple subscript replacement
+    result = re.sub(r'_(\w)', lambda m: m.group(1).translate(subscript_map), result)
+    # Simple superscript replacement  
+    result = re.sub(r'\^(\w)', lambda m: m.group(1).translate(superscript_map), result)
+    
+    return result
+
+
+def escape_html(text: str) -> str:
+    """
+    Escape HTML special characters in text.
+    
+    Args:
+        text: Text to escape
+        
+    Returns:
+        HTML-escaped text
+    """
+    html_escape_table = {
+        "&": "&amp;",
+        '"': "&quot;",
+        "'": "&#x27;",
+        ">": "&gt;",
+        "<": "&lt;",
+    }
+    return "".join(html_escape_table.get(c, c) for c in text)

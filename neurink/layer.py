@@ -23,6 +23,7 @@ class Layer(ABC):
         self.layer_type = layer_type
         self.params = kwargs
         self.name = kwargs.get('name', f"{layer_type}_{id(self)}")
+        self.display_name = kwargs.get('display_name', layer_type)  # For LaTeX support
         
     @abstractmethod
     def get_shape_info(self) -> Dict[str, Any]:

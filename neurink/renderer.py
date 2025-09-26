@@ -10,6 +10,7 @@ import networkx as nx
 import graphviz
 from .layer import Layer
 from .themes import Theme
+from .utils import process_latex_string, escape_html
 
 
 class SVGRenderer:
@@ -260,9 +261,10 @@ class GraphvizRenderer:
                     fillcolor=self._get_layer_color(layer, colors),
                     fontcolor=colors['text'])
         
-        # Add edges to the graph
-        for source, target in graph.edges():
-            dot.edge(source, target)
+        # Add edges to the graph with enhanced styling
+        for source, target, edge_data in graph.edges(data=True):
+            edge_attrs = self._get_edge_attributes(edge_data, colors)
+            dot.edge(source, target, **edge_attrs)
         
         # Render to SVG
         svg_content = dot.pipe(format='svg', encoding='utf-8')
@@ -283,10 +285,15 @@ class GraphvizRenderer:
         """Create HTML-like label for a layer node."""
         shape_info = layer.get_shape_info()
         
+        # Process layer name/type with LaTeX support
+        layer_display_name = getattr(layer, 'display_name', layer.layer_type)
+        processed_name = process_latex_string(layer_display_name)
+        escaped_name = escape_html(processed_name)
+        
         # Build table rows for layer information
         header_color = colors.get("layer_stroke", "#333333")
         rows = [
-            f'<TR><TD BGCOLOR="{header_color}" COLSPAN="2"><FONT COLOR="white"><B>{layer.layer_type.upper()}</B></FONT></TD></TR>'
+            f'<TR><TD BGCOLOR="{header_color}" COLSPAN="2"><FONT COLOR="white"><B>{escaped_name.upper()}</B></FONT></TD></TR>'
         ]
         
         # Add layer-specific information
@@ -362,3 +369,45 @@ class GraphvizRenderer:
             'add': colors.get('layer_fill', '#ede7f6')
         }
         return layer_colors.get(layer.layer_type, colors.get('layer_fill', '#f0f0f0'))
+
+    def _get_edge_attributes(self, edge_data: Dict[str, Any], colors: Dict[str, str]) -> Dict[str, str]:
+        """Get Graphviz attributes for an edge based on connection data."""
+        attrs = {'color': colors['connection']}
+        
+        # Handle connection styles
+        style = edge_data.get('style', 'solid')
+        if style == 'dashed':
+            attrs['style'] = 'dashed'
+        elif style == 'dotted':
+            attrs['style'] = 'dotted'
+        elif style == 'bold':
+            attrs['penwidth'] = '3'
+        
+        # Handle connection types with different colors
+        connection_type = edge_data.get('type', 'default')
+        type_colors = {
+            'skip': '#2196F3',      # Blue for skip connections
+            'residual': '#FF9800',  # Orange for residual connections
+            'attention': '#9C27B0', # Purple for attention connections
+            'feedback': '#F44336'   # Red for feedback connections
+        }
+        if connection_type in type_colors:
+            attrs['color'] = type_colors[connection_type]
+        
+        # Handle weighted connections
+        weight = edge_data.get('weight')
+        if weight is not None:
+            # Scale pen width based on weight (min 1, max 5)
+            pen_width = max(1, min(5, int(weight * 3 + 1)))
+            attrs['penwidth'] = str(pen_width)
+            # Add weight as tooltip
+            attrs['tooltip'] = f'Weight: {weight:.2f}'
+        
+        # Handle connection labels
+        label = edge_data.get('label', '')
+        if label:
+            attrs['label'] = label
+            attrs['fontsize'] = '8'
+            attrs['fontcolor'] = colors.get('text', '#000000')
+        
+        return attrs
