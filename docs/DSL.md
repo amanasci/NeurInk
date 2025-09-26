@@ -38,7 +38,78 @@ This enables skip connections, residual blocks, and branching architectures.
 
 - Empty lines are ignored
 - Leading and trailing whitespace is ignored
-- Comments are not yet supported (planned for future versions)
+- Comments are supported with `#` (full line or inline)
+
+**Examples:**
+```
+# This is a full line comment
+input size=28x28 name=input  # This is an inline comment
+conv filters=32 kernel=3     # Another inline comment
+```
+
+### New in v2.1: Hierarchical Blocks
+
+Group related layers into hierarchical blocks for better organization and automatic naming.
+
+```
+block_name {
+    layer_type parameter1=value1
+    layer_type parameter2=value2
+}
+```
+
+**Features:**
+- Layers inside blocks get automatic prefixed names (`block_layer_type_N`)
+- Nested blocks are supported
+- Improves readability for complex architectures
+- Maintains all layer functionality within blocks
+
+**Examples:**
+```
+# Simple encoder-decoder architecture
+encoder {
+    conv filters=32 kernel=3
+    conv filters=64 kernel=3
+    maxpool pool_size=2
+}
+
+decoder {
+    dense units=256
+    dense units=128
+    dropout rate=0.5
+}
+
+# Nested blocks for complex architectures
+transformer {
+    encoder {
+        multi_head_attention heads=8 dim=512
+        layer_norm
+        dense units=2048
+    }
+    
+    decoder {
+        multi_head_attention heads=8 dim=512
+        layer_norm
+        dense units=2048
+    }
+}
+```
+
+### LaTeX Support in Labels
+
+Layer display names support basic LaTeX mathematical symbols and expressions.
+
+**Supported Features:**
+- Greek letters: `\alpha`, `\beta`, `\gamma`, etc. → α, β, γ
+- Mathematical symbols: `\partial`, `\nabla`, `\sum`, etc. → ∂, ∇, ∑
+- Subscripts and superscripts: `x_1`, `x^2` → x₁, x²
+
+**Examples:**
+```
+conv filters=32 kernel=3 display_name="Conv2D_\alpha"
+dense units=128 display_name="FC_\theta" 
+output units=10 display_name="Softmax_\pi"
+```
 
 ## Layer Types
 
@@ -331,29 +402,43 @@ add
 
 No parameters required.
 
-### Connections (New in v2.0)
+### Connections (Enhanced in v2.1)
 
-Create explicit connections between layers to build complex architectures.
+Create explicit connections between layers to build complex architectures with enhanced visual styling and semantic types.
 
 ```
-connect from=SOURCE_LAYER to=TARGET_LAYER
+connect from=SOURCE_LAYER to=TARGET_LAYER [type=TYPE] [style=STYLE] [weight=WEIGHT] [label=LABEL]
 ```
 
 **Parameters:**
 - `from` (required): Name of the source layer
-- `to` (required): Name of the target layer
+- `to` (required): Name of the target layer  
+- `type` (optional): Connection type - `default`, `skip`, `residual`, `attention`, `feedback`
+- `style` (optional): Visual style - `solid`, `dashed`, `dotted`, `bold`
+- `weight` (optional): Connection weight (affects line thickness, ≥0.0)
+- `label` (optional): Text label for the connection
+
+**Connection Types:**
+- `default`: Standard connection (black)
+- `skip`: Skip connections (blue) 
+- `residual`: Residual connections (orange)
+- `attention`: Attention mechanisms (purple)
+- `feedback`: Feedback connections (red)
 
 **Examples:**
 ```
-# Skip connection
-connect from=conv1 to=conv3
+# Basic skip connection
+connect from=conv1 to=conv3 type=skip style=dashed
 
-# Residual connection
-connect from=input to=output_block
+# Weighted residual connection
+connect from=input to=output_block type=residual weight=0.5 style=bold
 
-# Multi-input fusion
-connect from=branch1 to=fusion_layer
-connect from=branch2 to=fusion_layer
+# Attention connection with label
+connect from=encoder to=decoder type=attention style=dotted label="Attn"
+
+# Multi-input fusion with different weights
+connect from=branch1 to=fusion_layer weight=0.6
+connect from=branch2 to=fusion_layer weight=0.4
 ```
 
 **Note:** Connections create additional edges in the network graph. The normal sequential flow is preserved automatically.

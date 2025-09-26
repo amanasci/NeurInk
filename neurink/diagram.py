@@ -154,13 +154,19 @@ class Diagram:
         self._add_layer_to_graph(layer, name)
         return self
         
-    def connect(self, source_layer_name: str, dest_layer_name: str) -> 'Diagram':
+    def connect(self, source_layer_name: str, dest_layer_name: str,
+                connection_type: str = 'default', weight: Optional[float] = None,
+                style: str = 'solid', label: str = '') -> 'Diagram':
         """
         Create a connection between two layers in the graph.
         
         Args:
             source_layer_name: Name of the source layer
             dest_layer_name: Name of the destination layer
+            connection_type: Type of connection ('default', 'skip', 'residual', 'attention', 'feedback')
+            weight: Optional weight for the connection (for weighted connections)
+            style: Visual style of the connection ('solid', 'dashed', 'dotted', 'bold')
+            label: Optional label for the connection
             
         Returns:
             Self for method chaining
@@ -173,7 +179,16 @@ class Diagram:
         if dest_layer_name not in self.graph:
             raise ValueError(f"Destination layer '{dest_layer_name}' does not exist")
         
-        self.graph.add_edge(source_layer_name, dest_layer_name)
+        # Store connection attributes as edge data
+        edge_data = {
+            'type': connection_type,
+            'style': style,
+            'label': label
+        }
+        if weight is not None:
+            edge_data['weight'] = weight
+        
+        self.graph.add_edge(source_layer_name, dest_layer_name, **edge_data)
         return self
         
     def maxpool(self, pool_size: Union[int, Tuple[int, int]] = 2, 

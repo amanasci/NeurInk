@@ -43,10 +43,16 @@ class DSLParser:
             return Diagram()
         
         diagram = Diagram()
-        lines = [line.strip() for line in dsl_text.strip().split('\n') if line.strip()]
+        
+        # Handle hierarchical blocks with simple preprocessing
+        processed_text = self._preprocess_blocks(dsl_text)
+        lines = [line.strip() for line in processed_text.strip().split('\n') if line.strip()]
         
         for line_num, line in enumerate(lines, 1):
             try:
+                # Skip comments
+                if line.startswith('#'):
+                    continue
                 if line.startswith('input'):
                     self._parse_input(line, diagram)
                 elif line.startswith('conv_transpose'):
@@ -91,6 +97,83 @@ class DSLParser:
                 raise DSLParseError(f"Error parsing line {line_num} '{line}': {e}") from e
                 
         return diagram
+    
+    def _preprocess_blocks(self, dsl_text: str) -> str:
+        """
+        Preprocess hierarchical blocks by flattening them with prefixes.
+        
+        This converts:
+            encoder {
+                conv filters=32 kernel=3
+                conv filters=64 kernel=3
+            }
+        
+        To:
+            conv filters=32 kernel=3 name=encoder_conv_1
+            conv filters=64 kernel=3 name=encoder_conv_2
+        """
+        lines = dsl_text.split('\n')
+        result_lines = []
+        block_stack = []
+        layer_counters = {}
+        
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+                
+            # Check for block start
+            if '{' in line and not line.endswith('}'):
+                block_name = line.split('{')[0].strip()
+                block_stack.append(block_name)
+                layer_counters[block_name] = {}
+                continue
+                
+            # Check for block end
+            if line == '}':
+                if block_stack:
+                    block_stack.pop()
+                continue
+            
+            # Process regular layer line
+            if block_stack:
+                # We're inside a block - add prefix to layer names
+                prefix = '_'.join(block_stack)
+                line = self._add_block_prefix(line, prefix, layer_counters)
+            
+            result_lines.append(line)
+        
+        return '\n'.join(result_lines)
+    
+    def _add_block_prefix(self, line: str, prefix: str, layer_counters: Dict) -> str:
+        """Add block prefix to layer names."""
+        parts = line.split()
+        if not parts:
+            return line
+            
+        layer_type = parts[0]
+        
+        # Check if name is explicitly provided
+        has_explicit_name = any(part.startswith('name=') for part in parts)
+        
+        if not has_explicit_name:
+            # Generate a name with block prefix
+            if layer_type not in layer_counters[prefix]:
+                layer_counters[prefix][layer_type] = 0
+            layer_counters[prefix][layer_type] += 1
+            
+            auto_name = f"{prefix}_{layer_type}_{layer_counters[prefix][layer_type]}"
+            line = f"{line} name={auto_name}"
+        else:
+            # Update existing name with prefix
+            for i, part in enumerate(parts):
+                if part.startswith('name='):
+                    original_name = part.split('=', 1)[1]
+                    parts[i] = f"name={prefix}_{original_name}"
+                    line = ' '.join(parts)
+                    break
+        
+        return line
         
     def _parse_input(self, line: str, diagram: Diagram) -> None:
         """Parse input layer definition."""
@@ -236,11 +319,44 @@ class DSLParser:
         if not source or not target:
             raise ValueError("Connection source and target cannot be empty")
         
-        diagram.connect(source, target)
+        # Parse optional connection attributes
+        connection_type = params.get('type', 'default')
+        weight = params.get('weight')
+        style = params.get('style', 'solid')
+        label = params.get('label', '')
+        
+        # Validate connection type and style
+        valid_types = {'default', 'skip', 'residual', 'attention', 'feedback'}
+        valid_styles = {'solid', 'dashed', 'dotted', 'bold'}
+        
+        if connection_type not in valid_types:
+            raise ValueError(f"Invalid connection type '{connection_type}'. Valid types: {', '.join(valid_types)}")
+        if style not in valid_styles:
+            raise ValueError(f"Invalid connection style '{style}'. Valid styles: {', '.join(valid_styles)}")
+        
+        # Validate weight if provided
+        if weight is not None:
+            try:
+                weight = float(weight)
+                if weight < 0:
+                    raise ValueError("Connection weight must be non-negative")
+            except ValueError:
+                raise ValueError("Invalid weight parameter in connection")
+        
+        diagram.connect(source, target, 
+                       connection_type=connection_type,
+                       weight=weight,
+                       style=style,
+                       label=label)
         
     def _parse_params(self, line: str) -> Dict[str, str]:
         """Parse key=value parameters from a line."""
         params = {}
+        
+        # Handle inline comments by removing everything after #
+        if '#' in line:
+            line = line.split('#')[0].strip()
+        
         parts = line.split()
         
         for part in parts[1:]:  # Skip the layer type
