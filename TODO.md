@@ -45,20 +45,58 @@ This document tracks the development progress and future roadmap for NeurInk v2.
   - [x] ResNet-style architecture examples
   - [x] Skip connection demonstrations
 
-## Future Enhancements (v2.1+)
+## Completed in v2.1 ✅
+
+### Visual Layer Annotations
+- [x] **Enhanced Layer Styling**
+  - [x] Custom layer colors with `annotation_color` parameter
+  - [x] Multiple layer shapes: box, ellipse, circle, diamond, hexagon
+  - [x] Layer styles: filled, outlined, dashed, dotted, bold
+  - [x] Text annotations with `annotation_note` parameter
+  - [x] Layer highlighting with `highlight` parameter
+  - [x] Full DSL and API support for all visual parameters
+
+### Block Template System
+- [x] **Reusable Architecture Components**
+  - [x] Block template registry system
+  - [x] `@residual` template for ResNet-style blocks with skip connections
+  - [x] `@attention` template for Transformer attention blocks
+  - [x] `@encoder` template for convolutional encoder blocks
+  - [x] Parameter substitution and validation
+  - [x] Template instantiation via DSL syntax: `@template_name param=value`
+
+### Enhanced Connection System
+- [x] **Advanced Connection Types**
+  - [x] Connection types: skip, residual, attention, feedback
+  - [x] Connection weights for fusion layers
+  - [x] Connection styles: solid, dashed, dotted, bold
+  - [x] Connection labels for documentation
+  - [x] Full validation and error handling
+
+### Hierarchical Block Syntax
+- [x] **Structured DSL Organization**
+  - [x] Nested block syntax: `block_name { layers... }`
+  - [x] Automatic prefixed naming within blocks
+  - [x] Support for deeply nested hierarchies
+  - [x] Template instantiation within blocks
+  - [x] Visual annotation support in hierarchical blocks
+
+### Expanded Test Coverage
+- [x] **Comprehensive Testing for v2.1 Features**
+  - [x] Visual annotation parsing and rendering tests
+  - [x] Block template expansion and instantiation tests  
+  - [x] Enhanced connection type validation tests
+  - [x] Hierarchical block structure tests
+  - [x] All 111 tests pass with new functionality
+
+## Future Enhancements (v2.2+)
 
 ### Advanced DSL Features
-- [ ] **Hierarchical Grouping**
-  - [ ] Support for nested blocks: `encoder { ... } decoder { ... }`
-  - [ ] Group-level connections and operations
-  - [ ] Named group references
-  - [ ] Block templates and reusability
-
-- [ ] **Enhanced Syntax**
-  - [ ] Comment support with `#` or `//`
+- [ ] **Enhanced Syntax Extensions**
   - [ ] Multi-line parameter definitions
   - [ ] Variable definitions and substitutions
   - [ ] Conditional layer inclusion
+  - [ ] Import/include system for DSL modularity
 
 ### Advanced Graph Operations
 - [ ] **Graph Algorithms**
@@ -67,11 +105,11 @@ This document tracks the development progress and future roadmap for NeurInk v2.
   - [ ] Graph simplification and merging
   - [ ] Subgraph extraction and composition
 
-- [ ] **Advanced Connection Types**
-  - [ ] Weighted connections with visual representation
-  - [ ] Connection labels and annotations  
-  - [ ] Conditional connections
-  - [ ] Multi-output and multi-input explicit handling
+- [ ] **Multi-Input/Multi-Output Support**
+  - [ ] Explicit multi-input layer handling
+  - [ ] Multi-output branching with automatic layout
+  - [ ] Complex fusion operations
+  - [ ] Conditional connection paths
 
 ### Rendering Improvements
 - [ ] **Layout Enhancements**

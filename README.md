@@ -16,6 +16,9 @@ NeurInk is a research-grade Python library for creating beautiful, customizable 
 - 🌐 **Graph-Based**: v2.0 supports complex architectures with skip connections and branching
 - 🏷️ **Named Layers**: Explicit layer naming for better control and connections
 - 🔗 **Skip Connections**: Create residual connections and complex topologies
+- 🎨 **Visual Annotations**: v2.1 adds custom layer colors, shapes, styles, and annotations
+- 🧩 **Block Templates**: v2.1 provides reusable components (@residual, @attention, @encoder)
+- 📚 **Hierarchical Blocks**: v2.1 supports nested block organization and structured DSL
 
 ## Installation
 
@@ -117,6 +120,84 @@ diagram = Diagram.from_string(dsl_text)
 diagram.render("resnet_dsl.svg", theme="ieee")
 ```
 
+### New in v2.1: Visual Layer Annotations
+
+Add custom styling and annotations to layers for better documentation and presentation:
+
+```python
+# Create a network with visual annotations
+dsl_text = """
+input size=224x224x3 name=input annotation_color=#E3F2FD annotation_note="RGB input"
+
+# Feature extraction with custom colors
+conv filters=64 kernel=7 stride=2 name=conv1 annotation_color=#FF6B6B annotation_shape=hexagon
+conv filters=64 kernel=3 name=conv2 annotation_color=#4ECDC4
+
+# Attention mechanism highlighted
+multi_head_attention num_heads=8 key_dim=64 name=attention annotation_color=#45B7D1 annotation_shape=diamond highlight=true annotation_note="Self-attention"
+
+# Final layers with custom styling
+dense units=512 name=fc annotation_shape=ellipse annotation_style=dashed
+output units=1000 name=classifier annotation_color=#96CEB4 annotation_shape=circle annotation_note="Classification"
+"""
+
+diagram = Diagram.from_string(dsl_text)
+diagram.render("annotated_network.svg")
+```
+
+### New in v2.1: Block Templates
+
+Use pre-built architectural components for rapid prototyping:
+
+```python
+# Use block templates in DSL
+dsl_text = """
+input size=224x224x3 name=input
+
+# ResNet-style blocks with skip connections
+@residual filters=64 name=res_block1
+@residual filters=128 name=res_block2
+
+# Transformer attention block
+@attention num_heads=8 key_dim=64 name=self_attn
+
+# Encoder block with multiple conv layers  
+@encoder filters=[256,512] name=feature_encoder
+
+output units=1000 name=classifier
+"""
+
+diagram = Diagram.from_string(dsl_text)
+diagram.render("templated_network.svg")
+```
+
+### New in v2.1: Hierarchical Organization
+
+Organize complex architectures with nested blocks:
+
+```python
+# Hierarchical block organization
+dsl_text = """
+input size=224x224x3 name=input
+
+backbone {
+    @residual filters=64 name=block1
+    @residual filters=128 name=block2
+    maxpool pool_size=2 name=pool
+}
+
+head {
+    flatten name=flatten
+    dense units=512 name=fc1 annotation_shape=ellipse
+    dropout rate=0.5 name=dropout
+    output units=1000 name=classifier annotation_color=#00FF00
+}
+"""
+
+diagram = Diagram.from_string(dsl_text)
+diagram.render("hierarchical_network.svg")
+```
+
 ## API Reference
 
 ### Core Classes
@@ -126,17 +207,17 @@ diagram.render("resnet_dsl.svg", theme="ieee")
 Main class for building neural network diagrams.
 
 **Methods:**
-- `input(shape, name=None)` - Add input layer
-- `conv(filters, kernel_size, stride=1, activation="relu", name=None)` - Add convolutional layer
-- `conv_transpose(filters, kernel_size, stride=1, activation="relu", name=None)` - Add transposed convolution layer
-- `dense(units, activation="relu", name=None)` - Add dense layer
-- `flatten(name=None)` - Add flatten layer
-- `dropout(rate, name=None)` - Add dropout layer  
-- `output(units, activation="softmax", name=None)` - Add output layer
-- `maxpool(pool_size=2, stride=None, name=None)` - Add max pooling layer
-- `upsample(size=2, method="nearest", name=None)` - Add upsampling layer
-- `batch_norm(name=None)` - Add batch normalization layer
-- `layer_norm(name=None)` - Add layer normalization layer
+- `input(shape, name=None, **kwargs)` - Add input layer
+- `conv(filters, kernel_size, stride=1, activation="relu", name=None, **kwargs)` - Add convolutional layer
+- `conv_transpose(filters, kernel_size, stride=1, activation="relu", name=None, **kwargs)` - Add transposed convolution layer
+- `dense(units, activation="relu", name=None, **kwargs)` - Add dense layer
+- `flatten(name=None, **kwargs)` - Add flatten layer
+- `dropout(rate, name=None, **kwargs)` - Add dropout layer  
+- `output(units, activation="softmax", name=None, **kwargs)` - Add output layer
+- `maxpool(pool_size=2, stride=None, name=None, **kwargs)` - Add max pooling layer
+- `upsample(size=2, method="nearest", name=None, **kwargs)` - Add upsampling layer
+- `batch_norm(name=None, **kwargs)` - Add batch normalization layer
+- `layer_norm(name=None, **kwargs)` - Add layer normalization layer
 - `multi_head_attention(num_heads, key_dim, name=None)` - Add multi-head attention layer
 - `embedding(vocab_size, embed_dim, name=None)` - Add embedding layer
 - `positional_encoding(max_len, embed_dim, name=None)` - Add positional encoding layer
@@ -148,6 +229,23 @@ Main class for building neural network diagrams.
 - `render(filename, theme="ieee")` - Render to SVG file
 - `from_string(dsl_text)` - Create from DSL (class method)
 - `get_layer_names()` - Get list of layer names (v2.0)
+
+**Visual Annotation Parameters (v2.1):**
+All layer methods accept additional visual annotation parameters through `**kwargs`:
+- `annotation_color` - Custom layer color (e.g., `#FF6B6B`, `red`, `blue`)
+- `annotation_shape` - Layer shape: `box` (default), `ellipse`, `circle`, `diamond`, `hexagon`
+- `annotation_style` - Visual style: `filled` (default), `outlined`, `dashed`, `dotted`, `bold`
+- `annotation_note` - Text annotation displayed with the layer
+- `highlight` - Boolean to highlight the layer with colored border (`True`/`False`)
+
+**Example with visual annotations:**
+```python
+diagram.conv(64, 3, name="feature_conv", 
+            annotation_color="#FF6B6B", 
+            annotation_shape="hexagon",
+            annotation_note="Feature extractor",
+            highlight=True)
+```
 
 ### Layer Types
 
@@ -289,7 +387,16 @@ If you use NeurInk in your research, please cite:
 
 ## Changelog
 
-### v2.0.0 (Latest)
+### v2.1.0 (Latest)
+- **Visual Layer Annotations**: Custom layer colors, shapes, styles, and text annotations
+- **Block Template System**: Reusable architectural components (@residual, @attention, @encoder)
+- **Hierarchical Blocks**: Nested block organization with `block_name { layers... }` syntax
+- **Enhanced Connections**: Connection types, weights, labels, and advanced styling
+- **Extended DSL**: Support for all visual parameters and template instantiation
+- **Comprehensive Examples**: Updated examples showcasing all v2.1 features
+- **Expanded Test Coverage**: 111 tests covering all new functionality
+
+### v2.0.0
 - **Major Update**: Graph-based architecture support
 - **New Feature**: Named layers with optional `name` parameter
 - **New Feature**: Skip connections via `connect()` method

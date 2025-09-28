@@ -5,7 +5,7 @@ A research-grade library for creating beautiful, customizable neural network
 diagrams with Python API and DSL support.
 """
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 __author__ = "NeurInk Contributors"
 
 from .diagram import Diagram

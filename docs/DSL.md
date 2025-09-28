@@ -517,6 +517,126 @@ connect from=branch2 to=fusion_layer weight=0.4
 
 ## Complete Examples
 
+## Advanced Examples (v2.1)
+
+### Visual Annotations Showcase
+
+```
+# Create a CNN with comprehensive visual annotations
+input size=224x224x3 name=input annotation_color=#E3F2FD annotation_note="RGB Image Input" annotation_shape=hexagon
+
+# Feature extraction layers with custom styling
+conv filters=32 kernel=3 name=conv1 annotation_color=#FF6B6B annotation_note="Initial feature extraction" highlight=true
+conv filters=64 kernel=3 name=conv2 annotation_color=#4ECDC4 annotation_shape=ellipse annotation_style=bold
+maxpool pool_size=2 name=pool1 annotation_color=#45B7D1 annotation_shape=diamond
+
+# Attention mechanism highlighted
+multi_head_attention num_heads=8 key_dim=64 name=attention annotation_color=#FF9F43 annotation_shape=circle highlight=true annotation_note="Self-attention layer"
+
+# Classification head with distinct styling
+flatten name=flatten annotation_style=dashed
+dense units=512 name=fc1 annotation_shape=ellipse annotation_color=#6C5CE7 annotation_note="Feature dense layer"
+dropout rate=0.5 name=dropout annotation_color=#FD79A8 annotation_style=dotted annotation_note="Regularization"
+output units=1000 name=classifier annotation_color=#00B894 annotation_shape=diamond annotation_note="Final classification" highlight=true
+```
+
+### Block Templates in Complex Architecture  
+
+```
+# Modern computer vision architecture using block templates
+input size=224x224x3 name=input annotation_color=#DDD6FE annotation_note="Input images"
+
+# Backbone with residual blocks
+@residual filters=64 name=res_stage1 
+@residual filters=128 name=res_stage2
+@residual filters=256 name=res_stage3
+
+# Add attention mechanism
+@attention num_heads=8 key_dim=64 name=global_attention
+
+# Feature extraction encoder
+@encoder filters=[512,1024] use_pooling=true name=feature_encoder
+
+# Final classification
+flatten name=global_pool annotation_shape=circle
+dense units=512 name=fc annotation_color=#8B5CF6 annotation_shape=ellipse
+output units=1000 name=predictions annotation_color=#10B981 highlight=true
+```
+
+### Hierarchical Organization Example
+
+```
+# Large-scale architecture with hierarchical organization
+input size=224x224x3 name=input
+
+backbone {
+    # Initial feature extraction
+    conv filters=64 kernel=7 stride=2 name=stem annotation_color=#F59E0B annotation_note="Stem conv"
+    maxpool pool_size=3 stride=2 name=stem_pool
+    
+    # Residual stages  
+    stage1 {
+        @residual filters=64 name=block1_1
+        @residual filters=64 name=block1_2
+    }
+    
+    stage2 {
+        @residual filters=128 name=block2_1 
+        @residual filters=128 name=block2_2
+        @residual filters=128 name=block2_3
+    }
+    
+    stage3 {
+        @residual filters=256 name=block3_1
+        @attention num_heads=8 key_dim=32 name=stage3_attention
+    }
+}
+
+neck {
+    # Feature pyramid network
+    conv filters=256 kernel=1 name=fpn_conv1 annotation_color=#EC4899
+    upsample size=2 name=fpn_up1
+    conv filters=256 kernel=3 name=fpn_conv2 annotation_color=#EC4899
+}
+
+head {
+    # Detection/classification head
+    conv filters=512 kernel=3 name=head_conv1 annotation_shape=ellipse
+    conv filters=256 kernel=1 name=head_conv2 annotation_shape=ellipse  
+    flatten name=head_flatten
+    dense units=1000 name=head_classifier annotation_color=#059669 highlight=true
+}
+```
+
+### Advanced Connection Types
+
+```
+# Showcase different connection types and styles
+input size=64x64x3 name=input
+
+# Main processing path
+conv filters=32 kernel=3 name=conv1 annotation_color=#3B82F6
+conv filters=64 kernel=3 name=conv2 annotation_color=#3B82F6
+conv filters=128 kernel=3 name=conv3 annotation_color=#3B82F6
+
+# Multiple connection types
+connect from=input to=conv3 type=skip style=dashed label="Skip" weight=0.3
+connect from=conv1 to=conv3 type=residual style=bold label="Residual" weight=0.7  
+connect from=conv2 to=conv3 type=attention style=dotted label="Attn"
+
+# Processing continues
+flatten name=flatten
+dense units=256 name=fc1 annotation_shape=ellipse
+dense units=128 name=fc2 annotation_shape=ellipse
+
+# Multi-path fusion
+concatenate name=fusion annotation_color=#F59E0B annotation_shape=diamond annotation_note="Feature fusion"
+connect from=fc1 to=fusion weight=0.6  
+connect from=fc2 to=fusion weight=0.4
+
+output units=10 name=output annotation_color=#10B981 highlight=true
+```
+
 ## Advanced Examples (v2.0)
 
 ### ResNet-style Architecture with Skip Connections
