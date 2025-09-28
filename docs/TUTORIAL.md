@@ -11,7 +11,10 @@ This tutorial walks you through the complete NeurInk workflow, from installation
 5. [Themes and Styling](#themes-and-styling)
 6. [Architecture Templates](#architecture-templates)
 7. [Advanced Features](#advanced-features)
-8. [Best Practices](#best-practices)
+8. [v2.1 Visual Annotations](#v21-visual-annotations)
+9. [v2.1 Block Templates](#v21-block-templates)
+10. [v2.1 Hierarchical Organization](#v21-hierarchical-organization)
+11. [Best Practices](#best-practices)
 
 ## Installation
 
@@ -493,6 +496,282 @@ base_diagram = Diagram().input((28, 28)).conv(32, 3).dense(10)
 
 for theme in themes:
     base_diagram.render(f"diagrams/network_{theme}.svg", theme=theme)
+```
+
+## v2.1 Visual Annotations
+
+NeurInk v2.1 introduces comprehensive visual annotation support, allowing you to customize the appearance of individual layers for better documentation and presentation.
+
+### Basic Visual Parameters
+
+All layers support these visual annotation parameters:
+- `annotation_color`: Custom layer color
+- `annotation_shape`: Layer shape (box, ellipse, circle, diamond, hexagon)
+- `annotation_style`: Visual style (filled, outlined, dashed, dotted, bold) 
+- `annotation_note`: Text annotation displayed with the layer
+- `highlight`: Boolean to add a colored border
+
+### Simple Example
+
+```python
+from neurink import Diagram
+
+dsl_text = """
+# Create a network with visual annotations
+input size=224x224x3 name=input annotation_color=#E3F2FD annotation_note="RGB images"
+
+# Feature extraction with custom colors
+conv filters=64 kernel=7 stride=2 name=conv1 annotation_color=#FF6B6B annotation_note="Initial features" highlight=true
+conv filters=128 kernel=3 name=conv2 annotation_color=#4ECDC4 annotation_shape=ellipse
+
+# Attention mechanism highlighted
+multi_head_attention num_heads=8 key_dim=64 name=attention annotation_color=#FCEA2B annotation_shape=circle highlight=true annotation_note="Global attention"
+
+# Final layers with custom styling
+dense units=512 name=fc annotation_color=#96CEB4 annotation_shape=ellipse annotation_style=dashed
+output units=1000 name=classifier annotation_color=#00D2D3 annotation_shape=diamond annotation_note="Final predictions"
+"""
+
+diagram = Diagram.from_string(dsl_text)
+diagram.render("annotated_network.svg", theme="ieee")
+```
+
+### Color Options
+
+You can use:
+- Hex colors: `#FF6B6B`, `#4ECDC4`
+- Named colors: `red`, `blue`, `green`
+- RGB values: `rgb(255,107,107)`
+
+### Shape Options
+
+Available shapes:
+- `box` (default): Standard rectangular shape
+- `ellipse`: Oval shape for processing layers
+- `circle`: Circular shape for special operations
+- `diamond`: Diamond shape for decision points
+- `hexagon`: Hexagonal shape for input/output
+
+### Style Options
+
+Available styles:
+- `filled` (default): Solid fill
+- `outlined`: Border only
+- `dashed`: Dashed border
+- `dotted`: Dotted border  
+- `bold`: Thick border
+
+## v2.1 Block Templates
+
+Block templates provide reusable architectural components that can be instantiated with parameters.
+
+### Built-in Templates
+
+#### Residual Block (`@residual`)
+
+Creates a ResNet-style residual block with skip connections:
+
+```python
+dsl_text = """
+input size=224x224x3 name=input
+
+# Create residual blocks
+@residual filters=64 name=res_block1
+@residual filters=128 name=res_block2  
+@residual filters=256 name=res_block3
+
+output units=1000 name=classifier
+"""
+
+diagram = Diagram.from_string(dsl_text)
+diagram.render("resnet_template.svg")
+```
+
+**Parameters:**
+- `filters`: Number of filters (required)
+- `kernel_size`: Kernel size (default: 3)
+- `name`: Block instance name (required)
+
+#### Attention Block (`@attention`)
+
+Creates a Transformer-style attention block:
+
+```python
+dsl_text = """
+input size=512 name=input
+
+@attention num_heads=8 key_dim=64 name=self_attn
+@attention num_heads=4 key_dim=128 name=cross_attn
+
+output units=vocab_size name=output
+"""
+```
+
+**Parameters:**
+- `num_heads`: Number of attention heads (default: 8)
+- `key_dim`: Key/value dimension (default: 64)
+- `name`: Block instance name (required)
+
+#### Encoder Block (`@encoder`)
+
+Creates a convolutional encoder with multiple layers:
+
+```python
+dsl_text = """
+input size=256x256x3 name=input
+
+@encoder filters=[64,128,256] use_pooling=true name=backbone
+@encoder filters=[512,1024] use_pooling=false name=head
+
+output units=1000 name=classifier
+"""
+```
+
+**Parameters:**
+- `filters`: List of filter sizes (required)
+- `kernel_size`: Kernel size for all layers (default: 3)
+- `use_pooling`: Add pooling layers (default: true)
+- `name`: Block instance name (required)
+
+### Combining Templates
+
+```python
+# Complex architecture using multiple templates
+dsl_text = """
+input size=224x224x3 name=input
+
+# Backbone with residual blocks
+@residual filters=64 name=stage1
+@residual filters=128 name=stage2
+
+# Add global attention  
+@attention num_heads=8 key_dim=64 name=global_attn
+
+# Feature encoder
+@encoder filters=[256,512] name=feature_enc
+
+# Final classification
+flatten name=pool
+output units=1000 name=classifier
+"""
+```
+
+## v2.1 Hierarchical Organization
+
+Organize complex architectures using hierarchical blocks for better structure and readability.
+
+### Basic Block Syntax
+
+```python
+dsl_text = """
+input size=224x224x3 name=input
+
+backbone {
+    conv filters=64 kernel=7 stride=2 name=stem
+    maxpool pool_size=3 stride=2 name=pool
+    
+    conv filters=128 kernel=3 name=conv1
+    conv filters=256 kernel=3 name=conv2
+}
+
+head {
+    flatten name=flatten
+    dense units=512 name=fc
+    dropout rate=0.5 name=dropout
+    output units=1000 name=classifier
+}
+"""
+```
+
+### Nested Hierarchies
+
+```python
+# Deep hierarchical organization
+dsl_text = """
+input size=224x224x3 name=input
+
+feature_extractor {
+    early_layers {
+        conv filters=64 kernel=7 stride=2 name=stem
+        maxpool pool_size=3 stride=2 name=pool
+    }
+    
+    res_stages {
+        stage1 {
+            @residual filters=64 name=block1_1
+            @residual filters=64 name=block1_2
+        }
+        
+        stage2 {
+            @residual filters=128 name=block2_1
+            @residual filters=128 name=block2_2
+            @attention num_heads=4 key_dim=32 name=stage2_attn
+        }
+    }
+}
+
+classifier_head {
+    global_context {
+        global_avg_pool name=gap
+        dense units=512 name=fc1
+    }
+    
+    final_layers {
+        dropout rate=0.5 name=dropout
+        output units=1000 name=predictions
+    }
+}
+"""
+```
+
+### Benefits of Hierarchical Organization
+
+1. **Better Structure**: Logical grouping of related layers
+2. **Improved Readability**: Clear architectural organization
+3. **Automatic Naming**: Layers get prefixed names within blocks
+4. **Modular Design**: Easy to modify specific sections
+5. **Template Integration**: Use templates within hierarchical blocks
+
+### Combining All v2.1 Features
+
+```python
+# Comprehensive example using all v2.1 features
+dsl_text = """
+input size=224x224x3 name=input annotation_color=#E0E7FF annotation_note="RGB input"
+
+backbone {
+    stem {
+        conv filters=64 kernel=7 stride=2 name=stem_conv annotation_color=#F59E0B highlight=true
+        maxpool pool_size=3 stride=2 name=stem_pool annotation_shape=diamond
+    }
+    
+    feature_stages {
+        # Use templates with visual annotations
+        @residual filters=64 name=stage1_block1
+        @residual filters=128 name=stage2_block1
+        @attention num_heads=8 key_dim=64 name=global_attention
+    }
+}
+
+head {
+    feature_processing {
+        @encoder filters=[256,512] name=feature_encoder
+        flatten name=flatten annotation_style=dotted
+    }
+    
+    classification {
+        dense units=512 name=fc1 annotation_color=#8B5CF6 annotation_shape=ellipse
+        dropout rate=0.5 name=dropout annotation_style=dashed
+        output units=1000 name=predictions annotation_color=#10B981 annotation_shape=diamond highlight=true
+    }
+}
+
+# Enhanced connections
+connect from=backbone/stem/stem_conv to=head/classification/fc1 type=skip style=dashed
+"""
+
+diagram = Diagram.from_string(dsl_text)
+diagram.render("comprehensive_v21_example.svg", theme="ieee")
 ```
 
 ## Best Practices
