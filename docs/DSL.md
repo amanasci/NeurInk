@@ -63,34 +63,88 @@ block_name {
 - Nested blocks are supported
 - Improves readability for complex architectures
 - Maintains all layer functionality within blocks
+- Visual annotations work inside blocks
+- Template instantiation supported inside blocks
+
+### New in v2.1: Block Templates
+
+Create reusable block templates with parameters for common architectural patterns.
+
+```
+@template_name parameter1=value1 parameter2=value2 name=instance_name
+```
+
+**Built-in Templates:**
+
+**Residual Block (`@residual`):**
+```
+@residual filters=64 name=res_block1
+# Creates a ResNet-style residual block with skip connections
+```
+Parameters:
+- `filters`: Number of filters (default: 64)
+- `kernel_size`: Kernel size (default: 3)
+- `name`: Block instance name (default: "residual")
+
+**Attention Block (`@attention`):**
+```
+@attention num_heads=8 key_dim=64 name=attn_block1
+# Creates a Transformer-style attention block
+```
+Parameters:
+- `num_heads`: Number of attention heads (default: 8)
+- `key_dim`: Key dimension (default: 64)
+- `name`: Block instance name (default: "attention")
+
+**Encoder Block (`@encoder`):**
+```
+@encoder filters=[32,64,128] use_pooling=true name=feature_extractor
+# Creates a convolutional encoder with multiple layers
+```
+Parameters:
+- `filters`: List of filter sizes (default: [32,64,128])
+- `kernel_size`: Kernel size for all layers (default: 3)
+- `use_pooling`: Whether to add pooling layers (default: true)
+- `name`: Block instance name (default: "encoder")
 
 **Examples:**
 ```
 # Simple encoder-decoder architecture
 encoder {
-    conv filters=32 kernel=3
-    conv filters=64 kernel=3
+    conv filters=32 kernel=3 annotation_color=#FF6B6B annotation_note="Initial features"
+    conv filters=64 kernel=3 annotation_color=#4ECDC4
     maxpool pool_size=2
 }
 
 decoder {
-    dense units=256
-    dense units=128
-    dropout rate=0.5
+    dense units=256 annotation_style=bold
+    dropout rate=0.5 annotation_note="Regularization layer"
+    output units=10 annotation_color=#45B7D1 highlight=true
+}
+
+# Using templates with hierarchical blocks
+backbone {
+    @residual filters=64 name=block1
+    @residual filters=128 name=block2
+    @attention num_heads=8 key_dim=64 name=attn1
+}
+
+classifier {
+    flatten
+    dense units=256 annotation_shape=ellipse highlight=true
+    output units=10 annotation_color=#00FF00 annotation_shape=diamond
 }
 
 # Nested blocks for complex architectures
 transformer {
-    encoder {
-        multi_head_attention heads=8 dim=512
-        layer_norm
-        dense units=2048
+    encoder_stack {
+        @attention num_heads=8 key_dim=512 name=enc_attn1
+        @attention num_heads=8 key_dim=512 name=enc_attn2
     }
     
-    decoder {
-        multi_head_attention heads=8 dim=512
-        layer_norm
-        dense units=2048
+    decoder_stack {
+        @attention num_heads=8 key_dim=512 name=dec_attn1
+        @attention num_heads=8 key_dim=512 name=dec_attn2
     }
 }
 ```
@@ -112,6 +166,24 @@ output units=10 display_name="Softmax_\pi"
 ```
 
 ## Layer Types
+
+### Visual Layer Annotations (New in v2.1)
+
+All layer types now support visual annotation parameters for enhanced diagram styling:
+
+**Visual Annotation Parameters:**
+- `annotation_color`: Custom color for the layer (e.g., `#FF6B6B`, `red`, `#00FF00`)
+- `annotation_shape`: Layer shape - `box` (default), `ellipse`, `circle`, `diamond`, `hexagon`
+- `annotation_style`: Visual style - `filled` (default), `outlined`, `dashed`, `dotted`, `bold`
+- `annotation_note`: Text note/comment displayed with the layer (use quotes for multi-word notes)
+- `highlight`: Boolean to highlight the layer with a colored border (`true`/`false`, `1`/`0`, `yes`/`no`, `on`/`off`)
+
+**Examples:**
+```
+conv filters=32 kernel=3 annotation_color=#FF6B6B annotation_note="Feature extractor"
+dense units=128 annotation_shape=ellipse annotation_style=dashed highlight=true
+output units=10 annotation_color=#45B7D1 annotation_shape=diamond annotation_note="Final predictions"
+```
 
 ### Input Layer
 

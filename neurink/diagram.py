@@ -72,7 +72,7 @@ class Diagram:
         return self
         
     def conv(self, filters: int, kernel_size: Union[int, Tuple[int, int]], 
-             stride: int = 1, activation: str = "relu", name: Optional[str] = None) -> 'Diagram':
+             stride: int = 1, activation: str = "relu", name: Optional[str] = None, **kwargs) -> 'Diagram':
         """
         Add a convolutional layer to the diagram.
         
@@ -82,15 +82,16 @@ class Diagram:
             stride: Stride of convolution (default: 1)
             activation: Activation function name (default: "relu")
             name: Optional name for the layer. If not provided, auto-generated.
+            **kwargs: Visual annotation parameters (annotation_color, annotation_shape, etc.)
             
         Returns:
             Self for method chaining
         """
-        layer = ConvLayer(filters, kernel_size, stride, activation, name=name)
+        layer = ConvLayer(filters, kernel_size, stride, activation, name=name, **kwargs)
         self._add_layer_to_graph(layer, name)
         return self
         
-    def dense(self, units: int, activation: str = "relu", name: Optional[str] = None) -> 'Diagram':
+    def dense(self, units: int, activation: str = "relu", name: Optional[str] = None, **kwargs) -> 'Diagram':
         """
         Add a dense (fully connected) layer to the diagram.
         
@@ -98,11 +99,12 @@ class Diagram:
             units: Number of output units
             activation: Activation function name (default: "relu")
             name: Optional name for the layer. If not provided, auto-generated.
+            **kwargs: Visual annotation parameters (annotation_color, annotation_shape, etc.)
             
         Returns:
             Self for method chaining
         """
-        layer = DenseLayer(units, activation, name=name)
+        layer = DenseLayer(units, activation, name=name, **kwargs)
         self._add_layer_to_graph(layer, name)
         return self
         
