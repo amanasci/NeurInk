@@ -257,9 +257,16 @@ class GraphvizRenderer:
         for node_name in graph.nodes():
             layer = graph.nodes[node_name]['layer']
             label = self._create_html_label(layer, colors)
-            dot.node(node_name, label, 
-                    fillcolor=self._get_layer_color(layer, colors),
-                    fontcolor=colors['text'])
+            node_attrs = {
+                'label': label,
+                'fillcolor': self._get_layer_color(layer, colors),
+                'fontcolor': colors['text'],
+            }
+            
+            # Apply visual annotation parameters
+            node_attrs.update(self._get_node_visual_attributes(layer))
+            
+            dot.node(node_name, **node_attrs)
         
         # Add edges to the graph with enhanced styling
         for source, target, edge_data in graph.edges(data=True):
@@ -343,6 +350,11 @@ class GraphvizRenderer:
         if hasattr(layer, 'name') and not layer.name.startswith(f"{layer.layer_type}_"):
             rows.append(f'<TR><TD COLSPAN="2"><I>{layer.name}</I></TD></TR>')
         
+        # Add annotation note if present
+        if hasattr(layer, 'annotation_note') and layer.annotation_note:
+            escaped_note = escape_html(layer.annotation_note)
+            rows.append(f'<TR><TD COLSPAN="2"><FONT POINT-SIZE="8" COLOR="#666666">{escaped_note}</FONT></TD></TR>')
+        
         table_rows = ''.join(rows)
         return f'<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">{table_rows}</TABLE>>'
         
@@ -410,4 +422,42 @@ class GraphvizRenderer:
             attrs['fontsize'] = '8'
             attrs['fontcolor'] = colors.get('text', '#000000')
         
+        return attrs
+        
+    def _get_node_visual_attributes(self, layer: Layer) -> Dict[str, str]:
+        """Get Graphviz attributes for a node based on visual annotation parameters."""
+        attrs = {}
+        
+        # Apply custom color if specified
+        if hasattr(layer, 'annotation_color') and layer.annotation_color:
+            attrs['fillcolor'] = layer.annotation_color
+        
+        # Apply custom shape if specified
+        if hasattr(layer, 'annotation_shape') and layer.annotation_shape:
+            shape_mapping = {
+                'box': 'box',
+                'ellipse': 'ellipse',
+                'circle': 'circle',
+                'diamond': 'diamond',
+                'hexagon': 'hexagon'
+            }
+            attrs['shape'] = shape_mapping.get(layer.annotation_shape, 'box')
+        
+        # Apply custom style if specified
+        if hasattr(layer, 'annotation_style') and layer.annotation_style:
+            if layer.annotation_style == 'outlined':
+                attrs['style'] = 'none'  # Just outline
+            elif layer.annotation_style == 'dashed':
+                attrs['style'] = 'dashed,filled'
+            elif layer.annotation_style == 'dotted':
+                attrs['style'] = 'dotted,filled'
+            elif layer.annotation_style == 'bold':
+                attrs['style'] = 'filled'
+                attrs['penwidth'] = '3'
+        
+        # Apply highlight if specified
+        if hasattr(layer, 'highlight') and layer.highlight:
+            attrs['penwidth'] = '4'
+            attrs['color'] = '#FF4444'  # Red border for highlighted layers
+            
         return attrs

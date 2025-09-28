@@ -7,6 +7,7 @@ for complex network architectures.
 
 from typing import Dict, Any, List, Optional
 from .diagram import Diagram
+from .blocks import get_block_registry
 
 
 class DSLParseError(Exception):
@@ -101,6 +102,7 @@ class DSLParser:
     def _preprocess_blocks(self, dsl_text: str) -> str:
         """
         Preprocess hierarchical blocks by flattening them with prefixes.
+        Also handles block template expansion.
         
         This converts:
             encoder {
@@ -111,8 +113,17 @@ class DSLParser:
         To:
             conv filters=32 kernel=3 name=encoder_conv_1
             conv filters=64 kernel=3 name=encoder_conv_2
+            
+        And expands templates like:
+            @residual filters=128 name=res1
+        
+        To the expanded template DSL.
         """
-        lines = dsl_text.split('\n')
+        # First pass: expand templates
+        expanded_text = self._expand_templates(dsl_text)
+        
+        # Second pass: flatten hierarchical blocks
+        lines = expanded_text.split('\n')
         result_lines = []
         block_stack = []
         layer_counters = {}
@@ -145,6 +156,73 @@ class DSLParser:
         
         return '\n'.join(result_lines)
     
+    def _expand_templates(self, dsl_text: str) -> str:
+        """Expand block templates in DSL text."""
+        lines = dsl_text.split('\n')
+        result_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                result_lines.append(line)
+                continue
+            
+            # Check for template instantiation (lines starting with @)
+            if line.startswith('@'):
+                try:
+                    expanded = self._expand_template_line(line)
+                    result_lines.extend(expanded.split('\n'))
+                except ValueError as e:
+                    raise DSLParseError(f"Template expansion error: {e}")
+            else:
+                result_lines.append(line)
+        
+        return '\n'.join(result_lines)
+    
+    def _expand_template_line(self, line: str) -> str:
+        """Expand a single template line."""
+        # Remove the @ prefix
+        line = line[1:].strip()
+        
+        # Parse template name and parameters
+        parts = line.split()
+        if not parts:
+            raise ValueError("Template name is required")
+        
+        template_name = parts[0]
+        
+        # Parse parameters
+        params = {}
+        for part in parts[1:]:
+            if '=' in part:
+                key, value = part.split('=', 1)
+                # Try to parse as number, boolean, or list
+                if value.startswith('[') and value.endswith(']'):
+                    # Parse as list of numbers
+                    try:
+                        value = [int(x.strip()) for x in value[1:-1].split(',') if x.strip()]
+                    except ValueError:
+                        value = [x.strip() for x in value[1:-1].split(',') if x.strip()]
+                elif value.lower() in ('true', 'false'):
+                    value = value.lower() == 'true'
+                else:
+                    try:
+                        # Try to parse as number
+                        value = int(value) if value.isdigit() else float(value)
+                    except ValueError:
+                        # Keep as string
+                        pass
+                
+                # Map 'name' parameter to 'block_name' to avoid conflicts
+                if key == 'name':
+                    params['block_name'] = value
+                else:
+                    params[key] = value
+        
+        # Get registry and expand template
+        registry = get_block_registry()
+        return registry.expand_template(template_name, **params)
+    
     def _add_block_prefix(self, line: str, prefix: str, layer_counters: Dict) -> str:
         """Add block prefix to layer names."""
         parts = line.split()
@@ -152,6 +230,10 @@ class DSLParser:
             return line
             
         layer_type = parts[0]
+        
+        # Handle connection statements specially
+        if layer_type == 'connect':
+            return self._add_prefix_to_connections(line, prefix)
         
         # Check if name is explicitly provided
         has_explicit_name = any(part.startswith('name=') for part in parts)
@@ -174,6 +256,22 @@ class DSLParser:
                     break
         
         return line
+    
+    def _add_prefix_to_connections(self, line: str, prefix: str) -> str:
+        """Add block prefix to connection statements."""
+        parts = line.split()
+        result_parts = []
+        
+        for part in parts:
+            if part.startswith('from=') or part.startswith('to='):
+                param, value = part.split('=', 1)
+                # Add prefix to layer name in connection
+                prefixed_value = f"{prefix}_{value}"
+                result_parts.append(f"{param}={prefixed_value}")
+            else:
+                result_parts.append(part)
+        
+        return ' '.join(result_parts)
         
     def _parse_input(self, line: str, diagram: Diagram) -> None:
         """Parse input layer definition."""
@@ -221,6 +319,9 @@ class DSLParser:
             activation = params.get('activation', 'relu')
             name = params.get('name')
             
+            # Extract visual annotation parameters
+            visual_params = self._extract_visual_params(params)
+            
             if filters <= 0:
                 raise ValueError("Number of filters must be positive")
             if kernel <= 0:
@@ -228,7 +329,7 @@ class DSLParser:
             if stride <= 0:
                 raise ValueError("Stride must be positive")
                 
-            diagram.conv(filters, kernel, stride, activation, name=name)
+            diagram.conv(filters, kernel, stride, activation, name=name, **visual_params)
         except ValueError as e:
             if "invalid literal for int()" in str(e):
                 raise ValueError("Invalid numeric parameter in conv layer")
@@ -252,7 +353,10 @@ class DSLParser:
             activation = params.get('activation', 'relu')
             name = params.get('name')
             
-            diagram.dense(units, activation, name=name)
+            # Extract visual annotation parameters
+            visual_params = self._extract_visual_params(params)
+            
+            diagram.dense(units, activation, name=name, **visual_params)
         except ValueError as e:
             if "invalid literal for int()" in str(e):
                 raise ValueError("Invalid units parameter in dense layer")
@@ -353,23 +457,89 @@ class DSLParser:
         """Parse key=value parameters from a line."""
         params = {}
         
-        # Handle inline comments by removing everything after #
-        if '#' in line:
-            line = line.split('#')[0].strip()
+        # Don't remove # that's inside parameter values (like colors)
+        # Only remove # that starts a comment (has space before it or is at start of line)
+        comment_start = -1
+        for i, char in enumerate(line):
+            if char == '#':
+                # Check if this is a comment (has space before it or nothing meaningful after =)
+                if i == 0 or line[i-1] == ' ':
+                    # Check if we're not inside a parameter value
+                    before_hash = line[:i]
+                    if '=' not in before_hash.split()[-1] if before_hash.split() else True:
+                        comment_start = i
+                        break
+        
+        if comment_start >= 0:
+            line = line[:comment_start].strip()
         
         parts = line.split()
         
-        for part in parts[1:]:  # Skip the layer type
+        i = 1  # Skip the layer type (first part)
+        while i < len(parts):
+            part = parts[i]
             if '=' in part:
                 key, value = part.split('=', 1)
                 if not key:
                     raise ValueError(f"Invalid parameter format: '{part}'. Expected 'key=value'")
-                # Allow empty values here, they will be checked in specific parsers
+                
+                # Handle quoted values that may span multiple parts
+                if value.startswith('"') and not value.endswith('"'):
+                    # Collect all parts until we find the closing quote
+                    quoted_parts = [value]
+                    i += 1
+                    while i < len(parts) and not parts[i].endswith('"'):
+                        quoted_parts.append(parts[i])
+                        i += 1
+                    if i < len(parts):
+                        quoted_parts.append(parts[i])
+                        value = ' '.join(quoted_parts)
+                    else:
+                        raise ValueError(f"Unterminated quoted string starting with: {value}")
+                
+                # Remove quotes from quoted values
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]
+                
                 params[key] = value
             elif part.strip():  # Ignore empty parts but error on non-empty non-parameter parts
                 raise ValueError(f"Invalid parameter format: '{part}'. Expected 'key=value'")
+            
+            i += 1
                     
         return params
+        
+    def _extract_visual_params(self, params: Dict[str, str]) -> Dict[str, Any]:
+        """Extract visual annotation parameters from parsed parameters."""
+        visual_params = {}
+        
+        # Extract visual annotation parameters
+        if 'annotation_color' in params:
+            visual_params['annotation_color'] = params['annotation_color']
+        if 'annotation_shape' in params:
+            shape = params['annotation_shape']
+            valid_shapes = {'box', 'ellipse', 'circle', 'diamond', 'hexagon'}
+            if shape not in valid_shapes:
+                raise ValueError(f"Invalid annotation_shape '{shape}'. Valid shapes: {', '.join(valid_shapes)}")
+            visual_params['annotation_shape'] = shape
+        if 'annotation_style' in params:
+            style = params['annotation_style']
+            valid_styles = {'filled', 'outlined', 'dashed', 'dotted', 'bold'}
+            if style not in valid_styles:
+                raise ValueError(f"Invalid annotation_style '{style}'. Valid styles: {', '.join(valid_styles)}")
+            visual_params['annotation_style'] = style
+        if 'annotation_note' in params:
+            visual_params['annotation_note'] = params['annotation_note']
+        if 'highlight' in params:
+            highlight_val = params['highlight'].lower()
+            if highlight_val in ('true', '1', 'yes', 'on'):
+                visual_params['highlight'] = True
+            elif highlight_val in ('false', '0', 'no', 'off'):
+                visual_params['highlight'] = False
+            else:
+                raise ValueError(f"Invalid highlight value '{params['highlight']}'. Use true/false, 1/0, yes/no, or on/off")
+        
+        return visual_params
     
     def _parse_conv_transpose(self, line: str, diagram: Diagram) -> None:
         """Parse transposed convolution layer definition."""

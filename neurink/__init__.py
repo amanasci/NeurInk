@@ -19,6 +19,7 @@ from .renderer import SVGRenderer, GraphvizRenderer
 from .themes import Theme, IEEETheme, APJTheme, MinimalTheme, DarkTheme
 from .parser import DSLParser, DSLParseError
 from .templates import ResNetTemplate, UNetTemplate, TransformerTemplate, MLPTemplate
+from .blocks import BlockTemplate, get_block_registry
 
 __all__ = [
     "Diagram",
@@ -54,4 +55,6 @@ __all__ = [
     "UNetTemplate", 
     "TransformerTemplate",
     "MLPTemplate",
+    "BlockTemplate",
+    "get_block_registry",
 ]

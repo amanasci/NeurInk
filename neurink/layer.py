@@ -25,6 +25,13 @@ class Layer(ABC):
         self.name = kwargs.get('name', f"{layer_type}_{id(self)}")
         self.display_name = kwargs.get('display_name', layer_type)  # For LaTeX support
         
+        # Visual layer annotations
+        self.annotation_color = kwargs.get('annotation_color', None)  # Custom layer color
+        self.annotation_shape = kwargs.get('annotation_shape', 'box')  # Layer shape: box, ellipse, circle
+        self.annotation_style = kwargs.get('annotation_style', 'filled')  # Visual style: filled, outlined, dashed
+        self.annotation_note = kwargs.get('annotation_note', None)  # Additional note/comment
+        self.highlight = kwargs.get('highlight', False)  # Whether to highlight this layer
+        
     @abstractmethod
     def get_shape_info(self) -> Dict[str, Any]:
         """Get shape and dimension information for rendering."""
